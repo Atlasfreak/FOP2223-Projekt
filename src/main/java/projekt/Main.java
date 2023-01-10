@@ -17,6 +17,7 @@ public class Main {
     private static void startWithoutGUI() {
         Projekt projekt = new BasicProjektImpl();
         projekt.start();
+        //test
     }
 
 }
