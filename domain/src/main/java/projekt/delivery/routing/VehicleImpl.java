@@ -2,6 +2,8 @@ package projekt.delivery.routing;
 
 import org.jetbrains.annotations.Nullable;
 
+import projekt.delivery.routing.Region.Edge;
+
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -18,10 +20,10 @@ class VehicleImpl implements Vehicle {
     private AbstractOccupied<?> occupied;
 
     public VehicleImpl(
-        int id,
-        double capacity,
-        VehicleManagerImpl vehicleManager,
-        VehicleManager.OccupiedRestaurant startingNode) {
+            int id,
+            double capacity,
+            VehicleManagerImpl vehicleManager,
+            VehicleManager.OccupiedRestaurant startingNode) {
         this.id = id;
         this.capacity = capacity;
         this.occupied = (AbstractOccupied<?>) startingNode;
@@ -51,12 +53,25 @@ class VehicleImpl implements Vehicle {
 
     @Override
     public void moveDirect(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
-        crash(); // TODO: H5.4 - remove if implemented
+        if (node == occupied) {
+            throw new IllegalArgumentException();
+        }
+        PathImpl pathToNode = null;
+        if (occupied instanceof Edge) {
+            pathToNode = moveQueue.getFirst();
+        }
+        moveQueue.clear();
+        moveQueue.add(pathToNode);
+        moveQueued(node, arrivalAction);
     }
 
     @Override
     public void moveQueued(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
-        crash(); // TODO: H5.3 - remove if implemented
+        if (node == occupied && moveQueue.size() <= 1) {
+            throw new IllegalArgumentException();
+        }
+        moveQueue.add(new PathImpl(
+                vehicleManager.getPathCalculator().getPath(moveQueue.getLast().nodes.getLast(), node), arrivalAction));
     }
 
     @Override
@@ -114,7 +129,8 @@ class VehicleImpl implements Vehicle {
         } else {
             Region.Node next = path.nodes().peek();
             if (occupied instanceof OccupiedNodeImpl) {
-                vehicleManager.getOccupied(region.getEdge(((OccupiedNodeImpl<?>) occupied).getComponent(), next)).addVehicle(this, currentTick);
+                vehicleManager.getOccupied(region.getEdge(((OccupiedNodeImpl<?>) occupied).getComponent(), next))
+                        .addVehicle(this, currentTick);
             } else if (occupied instanceof OccupiedEdgeImpl) {
                 vehicleManager.getOccupied(next).addVehicle(this, currentTick);
                 path.nodes().pop();
@@ -125,11 +141,14 @@ class VehicleImpl implements Vehicle {
     }
 
     void loadOrder(ConfirmedOrder order) {
-        crash(); // TODO: H5.2 - remove if implemented
+        if (getCurrentWeight() + order.getWeight() > capacity) {
+            throw new VehicleOverloadedException(this, getCurrentWeight() + order.getWeight());
+        }
+        orders.add(order);
     }
 
     void unloadOrder(ConfirmedOrder order) {
-        crash(); // TODO: H5.2 - remove if implemented
+        orders.remove(order);
     }
 
     @Override
@@ -140,11 +159,11 @@ class VehicleImpl implements Vehicle {
     @Override
     public String toString() {
         return "VehicleImpl("
-            + "id=" + id
-            + ", capacity=" + capacity
-            + ", orders=" + orders
-            + ", component=" + occupied.component
-            + ')';
+                + "id=" + id
+                + ", capacity=" + capacity
+                + ", orders=" + orders
+                + ", component=" + occupied.component
+                + ')';
     }
 
     private record PathImpl(Deque<Region.Node> nodes, Consumer<? super Vehicle> arrivalAction) implements Path {
