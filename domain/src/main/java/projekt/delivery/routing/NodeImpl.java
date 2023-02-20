@@ -3,6 +3,7 @@ package projekt.delivery.routing;
 import org.jetbrains.annotations.Nullable;
 import projekt.base.Location;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.tudalgo.algoutils.student.Student.crash;
@@ -16,17 +17,18 @@ class NodeImpl implements Region.Node {
 
     /**
      * Creates a new {@link NodeImpl} instance.
-     * @param region The {@link Region} this {@link NodeImpl} belongs to.
-     * @param name The name of this {@link NodeImpl}.
-     * @param location The {@link Location} of this {@link EdgeImpl}.
-     * @param connections All {@link Location}s this {@link NeighborhoodImpl} has an {@link Region.Edge} to.
+     * 
+     * @param region      The {@link Region} this {@link NodeImpl} belongs to.
+     * @param name        The name of this {@link NodeImpl}.
+     * @param location    The {@link Location} of this {@link EdgeImpl}.
+     * @param connections All {@link Location}s this {@link NeighborhoodImpl} has an
+     *                    {@link Region.Edge} to.
      */
     NodeImpl(
-        Region region,
-        String name,
-        Location location,
-        Set<Location> connections
-    ) {
+            Region region,
+            String name,
+            Location location,
+            Set<Location> connections) {
         this.region = region;
         this.name = name;
         this.location = location;
@@ -59,7 +61,11 @@ class NodeImpl implements Region.Node {
 
     @Override
     public Set<Region.Node> getAdjacentNodes() {
-        return crash(); // TODO: H3.2 - remove if implemented
+        Set<Region.Node> result = new HashSet<>();
+        for (Location connection : connections) {
+            result.add(region.getNode(connection));
+        }
+        return result;
     }
 
     @Override
