@@ -85,7 +85,7 @@ class NodeImpl implements Region.Node {
 
     @Override
     public int compareTo(Region.Node o) {
-        return crash(); // TODO: H3.4 - remove if implemented
+        return location.compareTo(o.getLocation());
     }
 
     @Override
