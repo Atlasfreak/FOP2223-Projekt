@@ -5,6 +5,8 @@ import projekt.base.Location;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
+import java.util.Comparator;
+
 /**
  * Represents a weighted edge in a graph.
  */
@@ -89,7 +91,9 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public int compareTo(Region.@NotNull Edge o) {
-        return crash(); // TODO: H4.2 - remove if implemented
+        Comparator<Region.Edge> nodeAComparator = Comparator.comparing(edge -> edge.getNodeA());
+        Comparator<Region.Edge> nodeBComparator = Comparator.comparing(edge -> edge.getNodeB());
+        return nodeAComparator.thenComparing(nodeBComparator).compare(this, o);
     }
 
     @Override
