@@ -7,8 +7,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.tudalgo.algoutils.student.Student.crash;
-
 class NodeImpl implements Region.Node {
 
     protected final Set<Location> connections;
