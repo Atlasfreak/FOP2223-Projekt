@@ -105,7 +105,7 @@ class NodeImpl implements Region.Node {
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H3.6 - remove if implemented
+        return Objects.hash(name, location, connections);
     }
 
     @Override
