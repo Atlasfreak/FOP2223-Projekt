@@ -73,12 +73,19 @@ class NodeImpl implements Region.Node {
 
     @Override
     public Set<Region.Edge> getAdjacentEdges() {
-        return crash(); // TODO: H3.3 - remove if implemented
+        Set<Region.Edge> result = new HashSet<>();
+        for (Location connection : connections) {
+            Region.Edge edge = region.getEdge(location, connection);
+            if (edge != null) {
+                result.add(edge);
+            }
+        }
+        return result;
     }
 
     @Override
     public int compareTo(Region.Node o) {
-         return crash(); // TODO: H3.4 - remove if implemented
+        return crash(); // TODO: H3.4 - remove if implemented
     }
 
     @Override
