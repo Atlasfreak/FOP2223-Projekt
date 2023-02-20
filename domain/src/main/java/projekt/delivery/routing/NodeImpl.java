@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 import projekt.base.Location;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.tudalgo.algoutils.student.Student.crash;
@@ -90,7 +91,16 @@ class NodeImpl implements Region.Node {
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H3.5 - remove if implemented
+        if (!(o instanceof NodeImpl) || o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
+        NodeImpl castedObject = (NodeImpl) o;
+        return Objects.equals(this.location, castedObject.getLocation())
+                && Objects.equals(this.name, castedObject.getName())
+                && Objects.equals(this.connections, castedObject.getConnections());
     }
 
     @Override
