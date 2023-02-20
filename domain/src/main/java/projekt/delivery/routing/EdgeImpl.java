@@ -19,24 +19,25 @@ class EdgeImpl implements Region.Edge {
 
     /**
      * Creates a new {@link EdgeImpl} instance.
-     * @param region The {@link Region} this {@link EdgeImpl} belongs to.
-     * @param name The name of this {@link EdgeImpl}.
+     *
+     * @param region    The {@link Region} this {@link EdgeImpl} belongs to.
+     * @param name      The name of this {@link EdgeImpl}.
      * @param locationA The start of this {@link EdgeImpl}.
      * @param locationB The end of this {@link EdgeImpl}.
-     * @param duration The length of this {@link EdgeImpl}.
+     * @param duration  The length of this {@link EdgeImpl}.
      */
     EdgeImpl(
-        Region region,
-        String name,
-        Location locationA,
-        Location locationB,
-        long duration
-    ) {
+            Region region,
+            String name,
+            Location locationA,
+            Location locationB,
+            long duration) {
         this.region = region;
         this.name = name;
         // locations must be in ascending order
         if (locationA.compareTo(locationB) > 0) {
-            throw new IllegalArgumentException(String.format("locationA %s must be <= locationB %s", locationA, locationB));
+            throw new IllegalArgumentException(
+                    String.format("locationA %s must be <= locationB %s", locationA, locationB));
         }
         this.locationA = locationA;
         this.locationB = locationB;
@@ -45,6 +46,7 @@ class EdgeImpl implements Region.Edge {
 
     /**
      * Returns the start of this {@link EdgeImpl}.
+     *
      * @return The start of this {@link EdgeImpl}.
      */
     public Location getLocationA() {
@@ -53,6 +55,7 @@ class EdgeImpl implements Region.Edge {
 
     /**
      * Returns the end of this {@link EdgeImpl}.
+     *
      * @return The end of this {@link EdgeImpl}.
      */
     public Location getLocationB() {
@@ -76,12 +79,12 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public Region.Node getNodeA() {
-        return crash(); // TODO: H4.1 - remove if implemented
+        return region.getNode(locationA);
     }
 
     @Override
     public Region.Node getNodeB() {
-        return crash(); // TODO: H4.1 - remove if implemented
+        return region.getNode(locationB);
     }
 
     @Override
