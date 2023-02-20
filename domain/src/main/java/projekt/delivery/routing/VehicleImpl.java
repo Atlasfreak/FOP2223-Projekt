@@ -1,13 +1,15 @@
 package projekt.delivery.routing;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import org.jetbrains.annotations.Nullable;
 
 import projekt.delivery.routing.Region.Edge;
-
-import java.util.*;
-import java.util.function.Consumer;
-
-import static org.tudalgo.algoutils.student.Student.crash;
 
 class VehicleImpl implements Vehicle {
 
