@@ -113,11 +113,12 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H4.4 - remove if implemented
+        return Objects.hash(name, locationA, locationB, duration);
     }
 
     @Override
     public String toString() {
-        return crash(); // TODO: H4.5 - remove if implemented
+        return String.format("EdgeImpl(name=\'%s\', locationA=\'%s\', locationB=\'%s\', duration=\'%s\')", name,
+                locationA, locationB, duration);
     }
 }
