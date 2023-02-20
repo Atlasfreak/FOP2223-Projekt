@@ -17,7 +17,7 @@ class NodeImpl implements Region.Node {
 
     /**
      * Creates a new {@link NodeImpl} instance.
-     * 
+     *
      * @param region      The {@link Region} this {@link NodeImpl} belongs to.
      * @param name        The name of this {@link NodeImpl}.
      * @param location    The {@link Location} of this {@link EdgeImpl}.
@@ -63,7 +63,10 @@ class NodeImpl implements Region.Node {
     public Set<Region.Node> getAdjacentNodes() {
         Set<Region.Node> result = new HashSet<>();
         for (Location connection : connections) {
-            result.add(region.getNode(connection));
+            Region.Node node = region.getNode(connection);
+            if (node != null) {
+                result.add(node);
+            }
         }
         return result;
     }
