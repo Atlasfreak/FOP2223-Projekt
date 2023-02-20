@@ -110,6 +110,6 @@ class NodeImpl implements Region.Node {
 
     @Override
     public String toString() {
-        return crash(); // TODO: H3.7 - remove if implemented
+        return String.format("NodeImpl(name=\'%s\', location=\'%s\', connections=\'%s\')", name, location, connections);
     }
 }
