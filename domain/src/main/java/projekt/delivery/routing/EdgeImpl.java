@@ -6,6 +6,7 @@ import projekt.base.Location;
 import static org.tudalgo.algoutils.student.Student.crash;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Represents a weighted edge in a graph.
@@ -98,7 +99,16 @@ class EdgeImpl implements Region.Edge {
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H4.3 - remove if implemented
+        if (!(o instanceof EdgeImpl) || o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
+        EdgeImpl castedObject = (EdgeImpl) o;
+        return Objects.equals(this.name, castedObject.name) && Objects.equals(this.locationA, castedObject.locationA)
+                && Objects.equals(this.locationB, castedObject.locationB)
+                && Objects.equals(this.duration, castedObject.duration);
     }
 
     @Override
