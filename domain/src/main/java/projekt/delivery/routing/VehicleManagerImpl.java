@@ -21,9 +21,8 @@ class VehicleManagerImpl implements VehicleManager {
     private final EventBus eventBus = new EventBus();
 
     VehicleManagerImpl(
-        Region region,
-        PathCalculator pathCalculator
-    ) {
+            Region region,
+            PathCalculator pathCalculator) {
         this.region = region;
         this.pathCalculator = pathCalculator;
         occupiedNodes = toOccupiedNodes(region.getNodes());
@@ -31,11 +30,25 @@ class VehicleManagerImpl implements VehicleManager {
     }
 
     private Map<Region.Node, OccupiedNodeImpl<? extends Region.Node>> toOccupiedNodes(Collection<Region.Node> nodes) {
-        return crash(); // TODO: H6.1 - remove if implemented
+        Map<Region.Node, OccupiedNodeImpl<? extends Region.Node>> occupiedNodesImpl = new HashMap<>();
+        for (Region.Node node : nodes) {
+            if (node instanceof Region.Restaurant) {
+                occupiedNodesImpl.put(node, new OccupiedRestaurantImpl((Region.Restaurant) node, this));
+            } else if (node instanceof Region.Neighborhood) {
+                occupiedNodesImpl.put(node, new OccupiedNeighborhoodImpl((Region.Neighborhood) node, this));
+            } else {
+                occupiedNodesImpl.put(node, new OccupiedNodeImpl<Region.Node>(node, this));
+            }
+        }
+        return Collections.unmodifiableMap(occupiedNodesImpl);
     }
 
     private Map<Region.Edge, OccupiedEdgeImpl> toOccupiedEdges(Collection<Region.Edge> edges) {
-        return crash(); // TODO: H6.1 - remove if implemented
+        Map<Region.Edge, OccupiedEdgeImpl> occupiedEdgesImpl = new HashMap<>();
+        for (Region.Edge edge : edges) {
+            occupiedEdgesImpl.put(edge, new OccupiedEdgeImpl(edge, this));
+        }
+        return Collections.unmodifiableMap(occupiedEdgesImpl);
     }
 
     private Set<AbstractOccupied<?>> getAllOccupied() {
@@ -44,9 +57,9 @@ class VehicleManagerImpl implements VehicleManager {
 
     private OccupiedNodeImpl<? extends Region.Node> getOccupiedNode(Location location) {
         return occupiedNodes.values().stream()
-            .filter(node -> node.getComponent().getLocation().equals(location))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Could not find node with given predicate"));
+                .filter(node -> node.getComponent().getLocation().equals(location))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Could not find node with given predicate"));
     }
 
     @Override
@@ -79,9 +92,9 @@ class VehicleManagerImpl implements VehicleManager {
     @Override
     public List<OccupiedRestaurant> getOccupiedRestaurants() {
         return occupiedNodes.values().stream()
-            .filter(OccupiedRestaurant.class::isInstance)
-            .map(OccupiedRestaurant.class::cast)
-            .toList();
+                .filter(OccupiedRestaurant.class::isInstance)
+                .map(OccupiedRestaurant.class::cast)
+                .toList();
     }
 
     @Override
@@ -92,9 +105,9 @@ class VehicleManagerImpl implements VehicleManager {
     @Override
     public Collection<OccupiedNeighborhood> getOccupiedNeighborhoods() {
         return occupiedNodes.values().stream()
-            .filter(OccupiedNeighborhood.class::isInstance)
-            .map(OccupiedNeighborhood.class::cast)
-            .toList();
+                .filter(OccupiedNeighborhood.class::isInstance)
+                .map(OccupiedNeighborhood.class::cast)
+                .toList();
     }
 
     @Override
@@ -144,17 +157,16 @@ class VehicleManagerImpl implements VehicleManager {
         }
 
         vehiclesToSpawn.addAll(getVehicles().stream()
-            .map(VehicleImpl.class::cast)
-            .toList());
+                .map(VehicleImpl.class::cast)
+                .toList());
 
         vehicles.clear();
     }
 
     @SuppressWarnings("UnusedReturnValue")
     Vehicle addVehicle(
-        Location startingLocation,
-        double capacity
-    ) {
+            Location startingLocation,
+            double capacity) {
         OccupiedNodeImpl<? extends Region.Node> occupied = getOccupiedNode(startingLocation);
 
         if (!(occupied instanceof OccupiedRestaurant)) {
@@ -162,10 +174,10 @@ class VehicleManagerImpl implements VehicleManager {
         }
 
         final VehicleImpl vehicle = new VehicleImpl(
-            vehicles.size() + vehiclesToSpawn.size(),
-            capacity,
-            this,
-            (OccupiedRestaurant) occupied);
+                vehicles.size() + vehiclesToSpawn.size(),
+                capacity,
+                this,
+                (OccupiedRestaurant) occupied);
         vehiclesToSpawn.add(vehicle);
         vehicle.setOccupied(occupied);
         return vehicle;
