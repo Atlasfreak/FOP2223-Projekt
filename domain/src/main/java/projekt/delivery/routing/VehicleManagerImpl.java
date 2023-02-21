@@ -52,7 +52,9 @@ class VehicleManagerImpl implements VehicleManager {
     }
 
     private Set<AbstractOccupied<?>> getAllOccupied() {
-        return crash(); // TODO: H6.2 - remove if implemented
+        HashSet<AbstractOccupied<?>> allOccupied = new HashSet<AbstractOccupied<?>>(occupiedNodes.values());
+        allOccupied.addAll(occupiedEdges.values());
+        return Collections.unmodifiableSet(allOccupied);
     }
 
     private OccupiedNodeImpl<? extends Region.Node> getOccupiedNode(Location location) {
