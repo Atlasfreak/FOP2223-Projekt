@@ -88,7 +88,31 @@ class VehicleManagerImpl implements VehicleManager {
 
     @Override
     public <C extends Region.Component<C>> AbstractOccupied<C> getOccupied(C component) {
-        return crash(); // TODO: H6.3 - remove if implemented
+        if (component == null) {
+            throw new NullPointerException("Component is null!");
+        }
+        if (!(component instanceof Region.Node) && !(component instanceof Region.Edge)) {
+            throw new IllegalArgumentException(
+                    String.format("Component is not of recognized subtype: %s", component.getClass().getName()));
+        }
+
+        String errorString = "Could not find occupied %s for %s";
+
+        if (component instanceof Region.Node) {
+            AbstractOccupied<C> contains = (AbstractOccupied<C>) occupiedNodes.get(component);
+            if (contains == null) {
+                throw new IllegalArgumentException(
+                        String.format(errorString, "node", component.toString()));
+            }
+            return contains;
+        }
+
+        AbstractOccupied<C> contains = (AbstractOccupied<C>) occupiedEdges.get(component);
+        if (contains == null) {
+            throw new IllegalArgumentException(
+                    String.format(errorString, "edge", component.toString()));
+        }
+        return contains;
     }
 
     @Override
