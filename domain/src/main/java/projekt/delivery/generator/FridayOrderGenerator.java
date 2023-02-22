@@ -1,47 +1,113 @@
 package projekt.delivery.generator;
 
+import projekt.base.TickInterval;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.routing.VehicleManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-import static org.tudalgo.algoutils.student.Student.crash;
-
 /**
- * An implementation of an {@link OrderGenerator} that represents the incoming orders on an average friday evening.
- * The incoming orders follow a normal distribution.<p>
+ * An implementation of an {@link OrderGenerator} that represents the incoming
+ * orders on an average friday evening.
+ * The incoming orders follow a normal distribution.
+ * <p>
  *
- * To create a new {@link FridayOrderGenerator} use {@code FridayOrderGenerator.Factory.builder()...build();}.
+ * To create a new {@link FridayOrderGenerator} use
+ * {@code FridayOrderGenerator.Factory.builder()...build();}.
  */
 public class FridayOrderGenerator implements OrderGenerator {
 
     private final Random random;
 
+    private final double variance;
+
+    private final int orderCount;
+
+    private final VehicleManager vehicleManager;
+
+    private final int deliveryInterval;
+
+    private final double maxWeight;
+
+    private final long lastTick;
+
     /**
      * Creates a new {@link FridayOrderGenerator} with the given parameters.
-     * @param orderCount The total amount of orders this {@link OrderGenerator} will create. It is equal to the sum of
-     *                   the size of the lists that are returned for every positive long value.
-     * @param vehicleManager The {@link VehicleManager} this {@link OrderGenerator} will create orders for.
-     * @param deliveryInterval The amount of ticks between the start and end tick of the deliveryInterval of the created orders.
-     * @param maxWeight The maximum weight of a created order.
-     * @param variance The variance of the normal distribution.
-     * @param lastTick The last tick this {@link OrderGenerator} can return a non-empty list.
-     * @param seed The seed for the used {@link Random} instance. If negative a random seed will be used.
+     *
+     * @param orderCount       The total amount of orders this
+     *                         {@link OrderGenerator} will create. It is equal to
+     *                         the sum of
+     *                         the size of the lists that are returned for every
+     *                         positive long value.
+     * @param vehicleManager   The {@link VehicleManager} this
+     *                         {@link OrderGenerator} will create orders for.
+     * @param deliveryInterval The amount of ticks between the start and end tick of
+     *                         the deliveryInterval of the created orders.
+     * @param maxWeight        The maximum weight of a created order.
+     * @param variance         The variance of the normal distribution.
+     * @param lastTick         The last tick this {@link OrderGenerator} can return
+     *                         a non-empty list.
+     * @param seed             The seed for the used {@link Random} instance. If
+     *                         negative a random seed will be used.
      */
-    private FridayOrderGenerator(int orderCount, VehicleManager vehicleManager, int deliveryInterval, double maxWeight, double variance, long lastTick, int seed) {
+    private FridayOrderGenerator(int orderCount, VehicleManager vehicleManager, int deliveryInterval, double maxWeight,
+            double variance, long lastTick, int seed) {
+        this.orderCount = orderCount;
+        this.vehicleManager = vehicleManager;
+        this.deliveryInterval = deliveryInterval;
+        this.maxWeight = maxWeight;
+        this.lastTick = lastTick;
+        this.variance = variance;
+
         random = seed < 0 ? new Random() : new Random(seed);
-        crash(); // TODO: H7.1 - remove if implemented
+    }
+
+    public double randomGaussianBetweenOneAndZero() {
+        double randomDouble = random.nextGaussian(0.5, variance);
+        while (randomDouble < 0 || randomDouble > 1) {
+            randomDouble = random.nextGaussian(0.5, variance);
+        }
+        return randomDouble;
     }
 
     @Override
     public List<ConfirmedOrder> generateOrders(long tick) {
-        return crash(); // TODO: H7.1 - remove if implemented
+        if (tick < 0) {
+            throw new IndexOutOfBoundsException(tick);
+        }
+
+        List<ConfirmedOrder> confirmedOrders = new ArrayList<>();
+        List<VehicleManager.OccupiedNeighborhood> neighborhoods = vehicleManager.getOccupiedNeighborhoods().stream()
+                .toList();
+        List<VehicleManager.OccupiedRestaurant> restaurants = vehicleManager.getOccupiedRestaurants().stream().toList();
+
+        for (int i = 0; i < orderCount; i++) {
+            long randomTick = Math.round(randomGaussianBetweenOneAndZero() * lastTick);
+            VehicleManager.OccupiedRestaurant restaurant = restaurants.get(random.nextInt(restaurants.size()));
+
+            List<String> foodList = new ArrayList<>();
+            List<String> availabeFood = restaurant.getComponent().getAvailableFood();
+
+            int foodListLength = random.nextInt(1, 10);
+
+            for (int j = 0; j < foodListLength; j++) {
+                foodList.add(availabeFood.get(random.nextInt(availabeFood.size())));
+            }
+
+            confirmedOrders.add(new ConfirmedOrder(
+                    neighborhoods.get(random.nextInt(neighborhoods.size())).getComponent().getLocation(), restaurant,
+                    new TickInterval(randomTick, randomTick + deliveryInterval), foodList,
+                    random.nextDouble(maxWeight)));
+        }
+        return confirmedOrders;
     }
 
     /**
-     * A {@link OrderGenerator.Factory} for creating a new {@link FridayOrderGenerator}.
+     * A {@link OrderGenerator.Factory} for creating a new
+     * {@link FridayOrderGenerator}.
      */
     public static class Factory implements OrderGenerator.Factory {
 
@@ -53,7 +119,8 @@ public class FridayOrderGenerator implements OrderGenerator {
         public final long lastTick;
         public final int seed;
 
-        private Factory(int orderCount, VehicleManager vehicleManager, int deliveryInterval, double maxWeight, double variance, long lastTick, int seed) {
+        private Factory(int orderCount, VehicleManager vehicleManager, int deliveryInterval, double maxWeight,
+                double variance, long lastTick, int seed) {
             this.orderCount = orderCount;
             this.vehicleManager = vehicleManager;
             this.deliveryInterval = deliveryInterval;
@@ -65,11 +132,13 @@ public class FridayOrderGenerator implements OrderGenerator {
 
         @Override
         public OrderGenerator create() {
-            return new FridayOrderGenerator(orderCount, vehicleManager, deliveryInterval, maxWeight, variance, lastTick, seed);
+            return new FridayOrderGenerator(orderCount, vehicleManager, deliveryInterval, maxWeight, variance, lastTick,
+                    seed);
         }
 
         /**
          * Creates a new {@link FridayOrderGenerator.FactoryBuilder}.
+         *
          * @return The created {@link FridayOrderGenerator.FactoryBuilder}.
          */
         public static FridayOrderGenerator.FactoryBuilder builder() {
@@ -77,9 +146,9 @@ public class FridayOrderGenerator implements OrderGenerator {
         }
     }
 
-
     /**
-     * A {@link OrderGenerator.FactoryBuilder} form constructing a new {@link FridayOrderGenerator.Factory}.
+     * A {@link OrderGenerator.FactoryBuilder} form constructing a new
+     * {@link FridayOrderGenerator.Factory}.
      */
     public static class FactoryBuilder implements OrderGenerator.FactoryBuilder {
 
@@ -91,7 +160,8 @@ public class FridayOrderGenerator implements OrderGenerator {
         public long lastTick = 480;
         public int seed = -1;
 
-        private FactoryBuilder() {}
+        private FactoryBuilder() {
+        }
 
         public FactoryBuilder setOrderCount(int orderCount) {
             this.orderCount = orderCount;
