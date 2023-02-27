@@ -128,7 +128,7 @@ class VehicleManagerImpl implements VehicleManager {
         if (node == null) {
             throw new NullPointerException("Node is null!");
         }
-        if (!occupiedNodes.containsKey(node) || !(node instanceof OccupiedRestaurant)) {
+        if (!occupiedNodes.containsKey(node) || !(occupiedNodes.get(node) instanceof OccupiedRestaurant)) {
             throw new IllegalArgumentException(String.format("Node %s is not a restaurant", node.toString()));
         }
         return (OccupiedRestaurant) occupiedNodes.get(node);
@@ -147,7 +147,7 @@ class VehicleManagerImpl implements VehicleManager {
         if (node == null) {
             throw new NullPointerException("Node is null!");
         }
-        if (!occupiedNodes.containsKey(node) || !(node instanceof OccupiedNeighborhood)) {
+        if (!occupiedNodes.containsKey(node) || !(occupiedNodes.get(node) instanceof OccupiedNeighborhood)) {
             throw new IllegalArgumentException(String.format("Node %s is not a neighborhood", node.toString()));
         }
         return (OccupiedNeighborhood) occupiedNodes.get(node);
