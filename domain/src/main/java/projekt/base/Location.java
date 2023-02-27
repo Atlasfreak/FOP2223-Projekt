@@ -3,9 +3,6 @@ package projekt.base;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
-import java.util.Objects;
-
-import static org.tudalgo.algoutils.student.Student.crash;
 
 /**
  * A tuple for the x- and y-coordinates of a point.
@@ -83,7 +80,7 @@ public final class Location implements Comparable<Location> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        return String.format("%s%s", x, y).hashCode();
     }
 
     @Override
@@ -99,7 +96,7 @@ public final class Location implements Comparable<Location> {
         if (x == castedObject.getX() && y == castedObject.getY()) {
             return true;
         }
-        return false; // TODO: H1.3 - remove if implemented
+        return false;
     }
 
     @Override
