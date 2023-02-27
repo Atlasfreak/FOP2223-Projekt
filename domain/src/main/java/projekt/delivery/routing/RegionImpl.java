@@ -49,7 +49,7 @@ class RegionImpl implements Region {
             result = edges.get(locationA).get(locationB);
         }
         if (result == null && edges.containsKey(locationB)) {
-            result = edges.get(locationB).get(locationB);
+            result = edges.get(locationB).get(locationA);
         }
         return result;
     }
