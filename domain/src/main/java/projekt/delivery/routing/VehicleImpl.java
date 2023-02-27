@@ -5,7 +5,13 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
+
+import org.jetbrains.annotations.Nullable;
+
+import projekt.delivery.routing.Region.Edge;
+import java.util.*;
+import java.util.function.BiConsumer;
+
 
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +60,7 @@ class VehicleImpl implements Vehicle {
     }
 
     @Override
-    public void moveDirect(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
+    public void moveDirect(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
         if (node == occupied) {
             throw new IllegalArgumentException();
         }
@@ -68,7 +74,7 @@ class VehicleImpl implements Vehicle {
     }
 
     @Override
-    public void moveQueued(Region.Node node, Consumer<? super Vehicle> arrivalAction) {
+    public void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
         if (node == occupied && moveQueue.size() <= 1) {
             throw new IllegalArgumentException();
         }
@@ -122,11 +128,11 @@ class VehicleImpl implements Vehicle {
         final PathImpl path = moveQueue.peek();
         if (path.nodes().isEmpty()) {
             moveQueue.pop();
-            final @Nullable Consumer<? super Vehicle> action = path.arrivalAction();
+            final @Nullable BiConsumer<? super Vehicle, Long> action = path.arrivalAction();
             if (action == null) {
                 move(currentTick);
             } else {
-                action.accept(this);
+                action.accept(this, currentTick);
             }
         } else {
             Region.Node next = path.nodes().peek();
@@ -168,7 +174,7 @@ class VehicleImpl implements Vehicle {
                 + ')';
     }
 
-    private record PathImpl(Deque<Region.Node> nodes, Consumer<? super Vehicle> arrivalAction) implements Path {
+    private record PathImpl(Deque<Region.Node> nodes, BiConsumer<? super Vehicle, Long> arrivalAction) implements Path {
 
     }
 }
