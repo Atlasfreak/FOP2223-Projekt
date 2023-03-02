@@ -1,20 +1,27 @@
 package projekt.delivery.rating;
 
+import projekt.delivery.event.ArrivedAtNodeEvent;
+import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
 import projekt.delivery.routing.PathCalculator;
 import projekt.delivery.routing.Region;
 import projekt.delivery.routing.VehicleManager;
 import projekt.delivery.simulation.Simulation;
 
+import java.util.Deque;
 import java.util.List;
+
+import org.w3c.dom.Node;
 
 import static org.tudalgo.algoutils.student.Student.crash;
 
-
 /**
- * Rates the observed {@link Simulation} based on the distance traveled by all vehicles.<p>
+ * Rates the observed {@link Simulation} based on the distance traveled by all
+ * vehicles.
+ * <p>
  *
- * To create a new {@link TravelDistanceRater} use {@code TravelDistanceRater.Factory.builder()...build();}.
+ * To create a new {@link TravelDistanceRater} use
+ * {@code TravelDistanceRater.Factory.builder()...build();}.
  */
 public class TravelDistanceRater implements Rater {
 
@@ -24,6 +31,9 @@ public class TravelDistanceRater implements Rater {
     private final PathCalculator pathCalculator;
     private final double factor;
 
+    private long actualDistance;
+    private long worstDistance;
+
     private TravelDistanceRater(VehicleManager vehicleManager, double factor) {
         region = vehicleManager.getRegion();
         pathCalculator = vehicleManager.getPathCalculator();
@@ -32,7 +42,10 @@ public class TravelDistanceRater implements Rater {
 
     @Override
     public double getScore() {
-        return crash(); // TODO: H8.3 - remove if implemented
+        if (0 <= actualDistance && actualDistance < worstDistance * factor) {
+            return 1 - (actualDistance / worstDistance);
+        }
+        return 0;
     }
 
     @Override
@@ -42,7 +55,21 @@ public class TravelDistanceRater implements Rater {
 
     @Override
     public void onTick(List<Event> events, long tick) {
-        crash(); // TODO: H8.3 - remove if implemented
+        for (Event event : events) {
+            if (event instanceof ArrivedAtNodeEvent) {
+                ArrivedAtNodeEvent castedEvent = (ArrivedAtNodeEvent) event;
+                actualDistance += castedEvent.getLastEdge().getDuration();
+            } else if (event instanceof DeliverOrderEvent) {
+                DeliverOrderEvent castedEvent = (DeliverOrderEvent) event;
+                Deque<Region.Node> nodes = pathCalculator.getPath(castedEvent.getOrder().getRestaurant().getComponent(),
+                        castedEvent.getNode());
+                Region.Node lastNode = castedEvent.getOrder().getRestaurant().getComponent();
+                for (Region.Node node : nodes) {
+                    worstDistance += region.getEdge(lastNode, node).getDuration();
+                    lastNode = node;
+                }
+            }
+        }
     }
 
     /**
@@ -65,24 +92,26 @@ public class TravelDistanceRater implements Rater {
 
         /**
          * Creates a new {@link TravelDistanceRater.FactoryBuilder}.
+         *
          * @return The created {@link TravelDistanceRater.FactoryBuilder}.
          */
         public static FactoryBuilder builder() {
             return new FactoryBuilder();
         }
 
-
     }
 
     /**
-     * A {@link Rater.FactoryBuilder} form constructing a new {@link TravelDistanceRater.Factory}.
+     * A {@link Rater.FactoryBuilder} form constructing a new
+     * {@link TravelDistanceRater.Factory}.
      */
     public static class FactoryBuilder implements Rater.FactoryBuilder {
 
         public VehicleManager vehicleManager;
         public double factor = 0.5;
 
-        private FactoryBuilder() {}
+        private FactoryBuilder() {
+        }
 
         @Override
         public Factory build() {
