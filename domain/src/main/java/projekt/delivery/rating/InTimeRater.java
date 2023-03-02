@@ -23,8 +23,8 @@ public class InTimeRater implements Rater {
     private final long ignoredTicksOff;
     private final long maxTicksOff;
 
-    private long maxTotalTicksOff;
-    private long actualTotalTicksOff;
+    private double maxTotalTicksOff = 0;
+    private double actualTotalTicksOff = 0;
 
     /**
      * Creates a new {@link InTimeRater} instance.
