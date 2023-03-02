@@ -5,7 +5,9 @@ import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.routing.VehicleManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -33,6 +35,8 @@ public class FridayOrderGenerator implements OrderGenerator {
     private final double maxWeight;
 
     private final long lastTick;
+
+    private final Map<Long, List<ConfirmedOrder>> tickToOrder = new HashMap<>();
 
     /**
      * Creates a new {@link FridayOrderGenerator} with the given parameters.
@@ -79,11 +83,17 @@ public class FridayOrderGenerator implements OrderGenerator {
             throw new IndexOutOfBoundsException(tick);
         }
 
-        List<ConfirmedOrder> confirmedOrders = new ArrayList<>();
+        if (tickToOrder.size() == 0) {
+            populateTickToOrder();
+        }
+        return tickToOrder.getOrDefault(tick, new ArrayList<>());
+    }
+
+    private void populateTickToOrder() {
         List<VehicleManager.OccupiedNeighborhood> neighborhoods = vehicleManager.getOccupiedNeighborhoods().stream()
                 .toList();
-        List<VehicleManager.OccupiedRestaurant> restaurants = vehicleManager.getOccupiedRestaurants().stream().toList();
-
+        List<VehicleManager.OccupiedRestaurant> restaurants = vehicleManager.getOccupiedRestaurants().stream()
+                .toList();
         for (int i = 0; i < orderCount; i++) {
             long randomTick = Math.round(randomGaussianBetweenOneAndZero() * lastTick);
             VehicleManager.OccupiedRestaurant restaurant = restaurants.get(random.nextInt(restaurants.size()));
@@ -96,13 +106,15 @@ public class FridayOrderGenerator implements OrderGenerator {
             for (int j = 0; j < foodListLength; j++) {
                 foodList.add(availabeFood.get(random.nextInt(availabeFood.size())));
             }
+            List<ConfirmedOrder> confirmedOrders = tickToOrder.getOrDefault(randomTick, new ArrayList<>());
 
             confirmedOrders.add(new ConfirmedOrder(
-                    neighborhoods.get(random.nextInt(neighborhoods.size())).getComponent().getLocation(), restaurant,
+                    neighborhoods.get(random.nextInt(neighborhoods.size())).getComponent().getLocation(),
+                    restaurant,
                     new TickInterval(randomTick, randomTick + deliveryInterval), foodList,
                     random.nextDouble(maxWeight)));
+            tickToOrder.put(randomTick, confirmedOrders);
         }
-        return confirmedOrders;
     }
 
     /**
