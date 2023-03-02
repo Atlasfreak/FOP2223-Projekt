@@ -1,5 +1,8 @@
 package projekt.delivery.rating;
 
+import java.util.Deque;
+import java.util.List;
+
 import projekt.delivery.event.ArrivedAtNodeEvent;
 import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
@@ -7,13 +10,6 @@ import projekt.delivery.routing.PathCalculator;
 import projekt.delivery.routing.Region;
 import projekt.delivery.routing.VehicleManager;
 import projekt.delivery.simulation.Simulation;
-
-import java.util.Deque;
-import java.util.List;
-
-import org.w3c.dom.Node;
-
-import static org.tudalgo.algoutils.student.Student.crash;
 
 /**
  * Rates the observed {@link Simulation} based on the distance traveled by all
