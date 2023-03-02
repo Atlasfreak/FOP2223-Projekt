@@ -27,8 +27,8 @@ public class TravelDistanceRater implements Rater {
     private final PathCalculator pathCalculator;
     private final double factor;
 
-    private long actualDistance;
-    private long worstDistance;
+    private double actualDistance = 0;
+    private double worstDistance = 0;
 
     private TravelDistanceRater(VehicleManager vehicleManager, double factor) {
         region = vehicleManager.getRegion();
@@ -39,7 +39,7 @@ public class TravelDistanceRater implements Rater {
     @Override
     public double getScore() {
         if (0 <= actualDistance && actualDistance < worstDistance * factor) {
-            return 1 - (actualDistance / worstDistance);
+            return 1 - (actualDistance / (worstDistance * factor));
         }
         return 0;
     }
@@ -57,13 +57,18 @@ public class TravelDistanceRater implements Rater {
                 actualDistance += castedEvent.getLastEdge().getDuration();
             } else if (event instanceof DeliverOrderEvent) {
                 DeliverOrderEvent castedEvent = (DeliverOrderEvent) event;
-                Deque<Region.Node> nodes = pathCalculator.getPath(castedEvent.getOrder().getRestaurant().getComponent(),
+                Deque<Region.Node> nodesToLocation = pathCalculator.getPath(
+                        castedEvent.getOrder().getRestaurant().getComponent(),
                         castedEvent.getNode());
                 Region.Node lastNode = castedEvent.getOrder().getRestaurant().getComponent();
-                for (Region.Node node : nodes) {
-                    worstDistance += region.getEdge(lastNode, node).getDuration();
+
+                double totalDistance = 0;
+
+                for (Region.Node node : nodesToLocation) {
+                    totalDistance += region.getEdge(lastNode, node).getDuration();
                     lastNode = node;
                 }
+                worstDistance += totalDistance * 2;
             }
         }
     }
