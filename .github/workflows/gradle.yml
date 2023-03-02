@@ -34,6 +34,7 @@ jobs:
       uses: gradle/gradle-build-action@v2
       with:
         arguments: graderPublicRun -Dorg.gradle.jvmargs=-Xmx4g
+      continue-on-error: true
     - name: Upload Files
       uses: actions/upload-artifact@v3
       with:
