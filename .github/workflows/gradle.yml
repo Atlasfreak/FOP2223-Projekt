@@ -33,7 +33,7 @@ jobs:
     - name: Execute Tests
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: graderPublicRun
+        arguments: graderPublicRun -Dorg.gradle.jvmargs=-Xmx4g
     - name: Upload Files
       uses: actions/upload-artifact@v3
       with:
