@@ -30,13 +30,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Build with Gradle
-    - uses: gradle/gradle-build-action@v2
+      uses: gradle/gradle-build-action@v2
       with:
         arguments: build
-    - uses: gradle/gradle-build-action@v2
+    - name: Execute Tests
+      uses: gradle/gradle-build-action@v2
       with:
         arguments: graderPublicRun
-    - uses: actions/upload-artifact@v3
+    - name: Upload Files
+      uses: actions/upload-artifact@v3
       with:
         name: build-reports
         path: |
