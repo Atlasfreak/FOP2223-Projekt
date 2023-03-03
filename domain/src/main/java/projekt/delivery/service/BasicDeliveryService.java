@@ -38,7 +38,6 @@ public class BasicDeliveryService extends AbstractDeliveryService {
         for (OccupiedRestaurant restaurant : vehicleManager.getOccupiedRestaurants()) {
             for (Vehicle vehicle : restaurant.getVehicles()) {
                 loadOrders(currentTick, restaurant, vehicle);
-                vehicle.moveQueued(restaurant.getComponent());
             }
         }
         return vehicleManagerResult;
@@ -63,6 +62,9 @@ public class BasicDeliveryService extends AbstractDeliveryService {
 
             vehicle.moveQueued(vehicleManager.getRegion().getNode(order.getLocation()), arrivalAction());
             orderLocations.add(order.getLocation());
+        }
+        if (availableOrders.count() > 0) {
+            vehicle.moveQueued(restaurant.getComponent());
         }
     }
 
