@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 
 import projekt.base.Location;
 import projekt.delivery.event.Event;
@@ -44,11 +43,11 @@ public class BasicDeliveryService extends AbstractDeliveryService {
     }
 
     private void loadOrders(long currentTick, OccupiedRestaurant restaurant, Vehicle vehicle) {
-        Stream<ConfirmedOrder> availableOrders = pendingOrders.stream()
-                .filter(order -> order.getRestaurant() == restaurant);
+        List<ConfirmedOrder> availableOrders = pendingOrders.stream()
+                .filter(order -> order.getRestaurant() == restaurant).toList();
         List<Location> orderLocations = new ArrayList<>();
 
-        for (ConfirmedOrder order : availableOrders.toList()) {
+        for (ConfirmedOrder order : availableOrders) {
             if (vehicle.getCapacity() - (vehicle.getCurrentWeight() + order.getWeight()) < 0) {
                 break;
             }
@@ -63,7 +62,7 @@ public class BasicDeliveryService extends AbstractDeliveryService {
             vehicle.moveQueued(vehicleManager.getRegion().getNode(order.getLocation()), arrivalAction());
             orderLocations.add(order.getLocation());
         }
-        if (availableOrders.count() > 0) {
+        if (availableOrders.size() > 0) {
             vehicle.moveQueued(restaurant.getComponent());
         }
     }
