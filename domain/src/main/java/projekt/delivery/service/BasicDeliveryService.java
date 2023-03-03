@@ -3,6 +3,7 @@ package projekt.delivery.service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import projekt.base.Location;
@@ -33,41 +34,49 @@ public class BasicDeliveryService extends AbstractDeliveryService {
         pendingOrders.addAll(newOrders);
         pendingOrders
                 .sort(Comparator.comparingLong((ConfirmedOrder order) -> order.getDeliveryInterval().start())::compare);
+
         for (OccupiedRestaurant restaurant : vehicleManager.getOccupiedRestaurants()) {
             for (Vehicle vehicle : restaurant.getVehicles()) {
-                Stream<ConfirmedOrder> availableOrders = pendingOrders.stream()
-                        .filter(order -> order.getRestaurant() == restaurant);
-                List<Location> orderLocations = new ArrayList<>();
-                for (ConfirmedOrder order : availableOrders.toList()) {
-                    if (vehicle.getCapacity() - (vehicle.getCurrentWeight() + order.getWeight()) <= 0) {
-                        break;
-                    }
-                    restaurant.loadOrder(vehicle, order, currentTick);
-                    pendingOrders.remove(order);
-                    if (orderLocations.contains(order.getLocation())) {
-                        vehicle.moveQueued(vehicleManager.getRegion().getNode(order.getLocation()),
-                                (arrivedVehicle, tick) -> {
-                                    VehicleManager.OccupiedNeighborhood neighborhood = vehicleManager
-                                            .getOccupiedNeighborhood(
-                                                    (Region.Node) arrivedVehicle.getOccupied().getComponent());
-                                    List<ConfirmedOrder> localOrders = arrivedVehicle.getOrders().stream()
-                                            .filter(o -> vehicleManager.getRegion()
-                                                    .getNode(o.getLocation()) == neighborhood
-                                                            .getComponent())
-                                            .toList();
-                                    for (ConfirmedOrder loadedOrder : localOrders) {
-                                        neighborhood.deliverOrder(arrivedVehicle, loadedOrder, currentTick);
-                                    }
-                                    if (arrivedVehicle.getOrders().size() == 0) {
-                                        arrivedVehicle.moveQueued(restaurant.getComponent());
-                                    }
-                                });
-                        orderLocations.add(order.getLocation());
-                    }
-                }
+                loadOrders(currentTick, restaurant, vehicle);
+                vehicle.moveQueued(restaurant.getComponent());
             }
         }
         return vehicleManagerResult;
+    }
+
+    private void loadOrders(long currentTick, OccupiedRestaurant restaurant, Vehicle vehicle) {
+        Stream<ConfirmedOrder> availableOrders = pendingOrders.stream()
+                .filter(order -> order.getRestaurant() == restaurant);
+        List<Location> orderLocations = new ArrayList<>();
+
+        for (ConfirmedOrder order : availableOrders.toList()) {
+            if (vehicle.getCapacity() - (vehicle.getCurrentWeight() + order.getWeight()) < 0) {
+                break;
+            }
+
+            restaurant.loadOrder(vehicle, order, currentTick);
+            pendingOrders.remove(order);
+
+            if (orderLocations.contains(order.getLocation())) {
+                continue;
+            }
+
+            vehicle.moveQueued(vehicleManager.getRegion().getNode(order.getLocation()), arrivalAction());
+            orderLocations.add(order.getLocation());
+        }
+    }
+
+    private BiConsumer<? super Vehicle, Long> arrivalAction() {
+        return (arrivedVehicle, arrivedTick) -> {
+            VehicleManager.OccupiedNeighborhood neighborhood = vehicleManager
+                    .getOccupiedNeighborhood((Region.Node) arrivedVehicle.getOccupied().getComponent());
+            List<ConfirmedOrder> localOrders = arrivedVehicle.getOrders().stream()
+                    .filter(o -> vehicleManager.getRegion().getNode(o.getLocation()) == neighborhood.getComponent())
+                    .toList();
+            for (ConfirmedOrder loadedOrder : localOrders) {
+                neighborhood.deliverOrder(arrivedVehicle, loadedOrder, arrivedTick);
+            }
+        };
     }
 
     @Override
