@@ -30,10 +30,15 @@ public class RunnerImpl implements Runner {
 
     @Override
     public Map<ProblemArchetype, Simulation> createSimulations(ProblemGroup problemGroup,
-                                                                SimulationConfig simulationConfig,
-                                                                DeliveryService.Factory deliveryServiceFactory) {
-
-        return crash(); // TODO: H10.1 - remove if implemented
+            SimulationConfig simulationConfig,
+            DeliveryService.Factory deliveryServiceFactory) {
+        List<ProblemArchetype> problems = problemGroup.problems();
+        Map<ProblemArchetype, Simulation> problemToSimulation = new HashMap<>();
+        for (ProblemArchetype problem : problems) {
+            problemToSimulation.put(problem, new BasicDeliverySimulation(simulationConfig, problem.raterFactoryMap(),
+                    deliveryServiceFactory.create(problem.vehicleManager()), problem.orderGeneratorFactory()));
+        }
+        return problemToSimulation;
     }
 
 }
