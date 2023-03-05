@@ -98,7 +98,10 @@ class RegionImpl implements Region {
         if (edge.getRegion() != this || edge.getNodeA().getRegion() != this || edge.getNodeB().getRegion() != this) {
             throw new IllegalArgumentException(String.format("Edge %s has incorrect region", edge.toString()));
         }
-        edges.put(edge.getLocationA(), Map.of(edge.getLocationB(), edge));
+        if (!edges.containsKey(edge.getLocationA())) {
+            edges.put(edge.getLocationA(), new HashMap<>());
+        }
+        edges.get(edge.getLocationA()).put(edge.getLocationB(), edge);
         allEdges.add(edge);
     }
 
