@@ -73,8 +73,9 @@ class VehicleImpl implements Vehicle {
     @Override
     public void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction) {
         checkMoveToNode(node);
-        Region.Node start = moveQueue.peekLast() != null ? moveQueue.getLast().nodes().getLast()
-                : startingNode.getComponent();
+        Region.Node start = moveQueue.peekLast() != null && moveQueue.getLast().nodes().peekLast() != null
+                ? moveQueue.getLast().nodes().getLast()
+                : (Region.Node) occupied.getComponent();
         moveQueue.add(new PathImpl(vehicleManager.getPathCalculator().getPath(start, node), arrivalAction));
     }
 
