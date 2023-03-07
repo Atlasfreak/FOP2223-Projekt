@@ -1,13 +1,18 @@
 package projekt.delivery.routing;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import org.jetbrains.annotations.Nullable;
+
 import projekt.base.DistanceCalculator;
 import projekt.base.EuclideanDistanceCalculator;
 import projekt.base.Location;
-
-import java.util.*;
-
-import static org.tudalgo.algoutils.student.Student.crash;
 
 class RegionImpl implements Region {
 
@@ -17,14 +22,16 @@ class RegionImpl implements Region {
     private final DistanceCalculator distanceCalculator;
 
     /**
-     * Creates a new, empty {@link RegionImpl} instance using a {@link EuclideanDistanceCalculator}.
+     * Creates a new, empty {@link RegionImpl} instance using a
+     * {@link EuclideanDistanceCalculator}.
      */
     public RegionImpl() {
         this(new EuclideanDistanceCalculator());
     }
 
     /**
-     * Creates a new, empty {@link RegionImpl} instance using the given {@link DistanceCalculator}.
+     * Creates a new, empty {@link RegionImpl} instance using the given
+     * {@link DistanceCalculator}.
      */
     public RegionImpl(DistanceCalculator distanceCalculator) {
         this.distanceCalculator = distanceCalculator;
@@ -32,22 +39,29 @@ class RegionImpl implements Region {
 
     @Override
     public @Nullable Node getNode(Location location) {
-        return crash(); // TODO: H2.1 - remove if implemented
+        return nodes.get(location);
     }
 
     @Override
     public @Nullable Edge getEdge(Location locationA, Location locationB) {
-        return crash(); // TODO: H2.3 - remove if implemented
+        Edge result = null;
+        if (edges.containsKey(locationA) && edges.get(locationA).containsKey(locationB)) {
+            result = edges.get(locationA).get(locationB);
+        }
+        if (result == null && edges.containsKey(locationB)) {
+            result = edges.get(locationB).get(locationA);
+        }
+        return result;
     }
 
     @Override
     public Collection<Node> getNodes() {
-        return crash(); // TODO: H2.5 - remove if implemented
+        return Collections.unmodifiableCollection(nodes.values());
     }
 
     @Override
     public Collection<Edge> getEdges() {
-        return crash(); // TODO: H2.5 - remove if implemented
+        return Collections.unmodifiableCollection(allEdges);
     }
 
     @Override
@@ -57,27 +71,57 @@ class RegionImpl implements Region {
 
     /**
      * Adds the given {@link NodeImpl} to this {@link RegionImpl}.
+     *
      * @param node the {@link NodeImpl} to add.
      */
     void putNode(NodeImpl node) {
-        crash(); // TODO: H2.2 - remove if implemented
+        if (node.getRegion() != this) {
+            throw new IllegalArgumentException(String.format("Node %s has incorrect region", node.toString()));
+        }
+        nodes.put(node.getLocation(), node);
     }
 
     /**
      * Adds the given {@link EdgeImpl} to this {@link RegionImpl}.
+     *
      * @param edge the {@link EdgeImpl} to add.
      */
     void putEdge(EdgeImpl edge) {
-        crash(); // TODO: H2.4 - remove if implemented
+        if (edge.getNodeA() == null) {
+            throw new IllegalArgumentException(
+                    String.format("NodeA %s is not part of the region", edge.getLocationA()));
+        }
+        if (edge.getNodeB() == null) {
+            throw new IllegalArgumentException(
+                    String.format("NodeB %s is not part of the region", edge.getLocationB()));
+        }
+        if (edge.getRegion() != this || edge.getNodeA().getRegion() != this || edge.getNodeB().getRegion() != this) {
+            throw new IllegalArgumentException(String.format("Edge %s has incorrect region", edge.toString()));
+        }
+        if (!edges.containsKey(edge.getLocationA())) {
+            edges.put(edge.getLocationA(), new HashMap<>());
+        }
+        edges.get(edge.getLocationA()).put(edge.getLocationB(), edge);
+        allEdges.add(edge);
     }
 
     @Override
     public boolean equals(Object o) {
-        return crash(); // TODO: H2.6 - remove if implemented
+        if (!(o instanceof RegionImpl) || o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
+        RegionImpl castedObject = (RegionImpl) o;
+        if (Objects.equals(castedObject.nodes, this.nodes) && Objects.equals(castedObject.edges, this.edges)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public int hashCode() {
-        return crash(); // TODO: H2.7 - remove if implemented
+        return Objects.hash(nodes, allEdges);
     }
 }
