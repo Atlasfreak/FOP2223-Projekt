@@ -279,6 +279,7 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
                 TravelDistanceRater.Factory castedFactory = (TravelDistanceRater.Factory) raterFactory;
                 return new SimpleStringProperty(String.format("factor: %s", castedFactory.factor));
             }
+            return new SimpleStringProperty("invalid");
         });
 
         ratersTableView.getColumns().addAll(criteriaNameTableColumn, raterParametersTableColumn);
