@@ -243,10 +243,11 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final Tab ratersTab = new Tab("Raters");
 
         final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
+        final List<Vehicle> vehiclesTableData = new ArrayList<>();
         selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
-            System.out.println("I want die");
-            System.out.println(obs.getValue().raterFactoryMap());
             raterTableData.clear();
+            vehiclesTableData.clear();
+            vehiclesTableData.addAll(obs.getValue().vehicleManager().getAllVehicles());
             for (RatingCriteria criteria : RatingCriteria.values()) {
                 Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
                 data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
@@ -288,8 +289,11 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         ratersTab.setContent(ratersTableView);
 
         final Tab nodesTab = new Tab("Nodes");
-        final TableView<Vehicle> vehiclesTableView = new TableView<>(FXCollections
-                .observableList(selectedProblemProperty.get().vehicleManager().getAllVehicles().stream().toList()));
+
+        final Tab edgesTab = new Tab("Edges");
+
+        final Tab vehiclesTab = new Tab("Vehicles");
+        final TableView<Vehicle> vehiclesTableView = new TableView<>(FXCollections.observableList(vehiclesTableData));
         final TableColumn<Vehicle, String> vehicleIdTableColumn = new TableColumn<>("Id");
         final TableColumn<Vehicle, String> vehicleLocationTableColumn = new TableColumn<>("Location");
         final TableColumn<Vehicle, String> vehicleCapacityTableColumn = new TableColumn<>("Capacity");
@@ -302,8 +306,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         vehiclesTableView.getColumns().addAll(vehicleIdTableColumn, vehicleLocationTableColumn,
                 vehicleCapacityTableColumn);
 
-        final Tab edgesTab = new Tab("Edges");
-        final Tab vehiclesTab = new Tab("Vehicles");
+        vehiclesTab.setContent(vehiclesTableView);
+
         final Tab otherTab = new Tab("Other"); // Note: simulationLength & orderGenerator
 
         pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, otherTab);
