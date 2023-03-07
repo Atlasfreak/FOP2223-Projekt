@@ -1,17 +1,20 @@
 package projekt.delivery.rating;
 
+import java.util.List;
+
+import projekt.base.TickInterval;
+import projekt.delivery.event.DeliverOrderEvent;
 import projekt.delivery.event.Event;
+import projekt.delivery.event.OrderReceivedEvent;
 import projekt.delivery.routing.ConfirmedOrder;
 import projekt.delivery.simulation.Simulation;
 
-import java.util.List;
-
-import static org.tudalgo.algoutils.student.Student.crash;
-
 /**
- * Rates the observed {@link Simulation} based on the punctuality of the orders.<p>
+ * Rates the observed {@link Simulation} based on the punctuality of the orders.
+ * <p>
  *
- * To create a new {@link InTimeRater} use {@code InTimeRater.Factory.builder()...build();}.
+ * To create a new {@link InTimeRater} use
+ * {@code InTimeRater.Factory.builder()...build();}.
  */
 public class InTimeRater implements Rater {
 
@@ -20,14 +23,23 @@ public class InTimeRater implements Rater {
     private final long ignoredTicksOff;
     private final long maxTicksOff;
 
+    private double maxTotalTicksOff = 0;
+    private double actualTotalTicksOff = 0;
+
     /**
      * Creates a new {@link InTimeRater} instance.
-     * @param ignoredTicksOff The amount of ticks this {@link InTimeRater} ignores when dealing with an {@link ConfirmedOrder} that didn't get delivered in time.
-     * @param maxTicksOff The maximum amount of ticks too late/early this {@link InTimeRater} considers.
+     *
+     * @param ignoredTicksOff The amount of ticks this {@link InTimeRater} ignores
+     *                        when dealing with an {@link ConfirmedOrder} that
+     *                        didn't get delivered in time.
+     * @param maxTicksOff     The maximum amount of ticks too late/early this
+     *                        {@link InTimeRater} considers.
      */
     private InTimeRater(long ignoredTicksOff, long maxTicksOff) {
-        if (ignoredTicksOff < 0) throw new IllegalArgumentException(String.valueOf(ignoredTicksOff));
-        if (maxTicksOff <= 0) throw new IllegalArgumentException(String.valueOf(maxTicksOff));
+        if (ignoredTicksOff < 0)
+            throw new IllegalArgumentException(String.valueOf(ignoredTicksOff));
+        if (maxTicksOff <= 0)
+            throw new IllegalArgumentException(String.valueOf(maxTicksOff));
 
         this.ignoredTicksOff = ignoredTicksOff;
         this.maxTicksOff = maxTicksOff;
@@ -35,12 +47,37 @@ public class InTimeRater implements Rater {
 
     @Override
     public double getScore() {
-        return crash(); // TODO: H8.2 - remove if implemented
+        if (maxTotalTicksOff != 0) {
+            return 1 - (actualTotalTicksOff / maxTotalTicksOff);
+        }
+        return 0;
     }
 
     @Override
     public void onTick(List<Event> events, long tick) {
-        crash(); // TODO: H8.2 - remove if implemented
+        for (Event event : events) {
+            if (event instanceof DeliverOrderEvent) {
+                DeliverOrderEvent castedEvent = (DeliverOrderEvent) event;
+                long actualDeliveryTick = castedEvent.getOrder().getActualDeliveryTick();
+                TickInterval expectedDeliveryInterval = castedEvent.getOrder().getDeliveryInterval();
+                long deliveryDifference = 0;
+                if (actualDeliveryTick > expectedDeliveryInterval.end() + ignoredTicksOff) {
+                    deliveryDifference = actualDeliveryTick - expectedDeliveryInterval.end() - ignoredTicksOff;
+                } else if (actualDeliveryTick < expectedDeliveryInterval.start() - ignoredTicksOff) {
+                    deliveryDifference = expectedDeliveryInterval.start() - ignoredTicksOff - actualDeliveryTick;
+                }
+
+                if (deliveryDifference > maxTicksOff) {
+                    deliveryDifference = maxTicksOff;
+                }
+                actualTotalTicksOff -= maxTicksOff;
+                actualTotalTicksOff += deliveryDifference;
+            } else if (event instanceof OrderReceivedEvent) {
+                maxTotalTicksOff += maxTicksOff;
+                actualTotalTicksOff += maxTicksOff;
+
+            }
+        }
     }
 
     /**
@@ -68,6 +105,7 @@ public class InTimeRater implements Rater {
 
         /**
          * Creates a new {@link InTimeRater.FactoryBuilder}.
+         *
          * @return The created {@link InTimeRater.FactoryBuilder}.
          */
         public static FactoryBuilder builder() {
@@ -76,14 +114,16 @@ public class InTimeRater implements Rater {
     }
 
     /**
-     * A {@link Rater.FactoryBuilder} form constructing a new {@link InTimeRater.Factory}.
+     * A {@link Rater.FactoryBuilder} form constructing a new
+     * {@link InTimeRater.Factory}.
      */
     public static class FactoryBuilder implements Rater.FactoryBuilder {
 
         public long ignoredTicksOff = 5;
         public long maxTicksOff = 25;
 
-        private FactoryBuilder() {}
+        private FactoryBuilder() {
+        }
 
         public FactoryBuilder setIgnoredTicksOff(long ignoredTicksOff) {
             this.ignoredTicksOff = ignoredTicksOff;

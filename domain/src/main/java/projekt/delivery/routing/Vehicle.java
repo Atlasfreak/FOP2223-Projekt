@@ -1,14 +1,12 @@
 package projekt.delivery.routing;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static org.tudalgo.algoutils.student.Student.crash;
+import org.jetbrains.annotations.Nullable;
 
 public interface Vehicle extends Comparable<Vehicle> {
 
@@ -25,9 +23,11 @@ public interface Vehicle extends Comparable<Vehicle> {
 
     /**
      * Returns the previous component this Vehicle occupied.
+     *
      * @return the previous component or null if this vehicle has not moved yet.
      */
-    @Nullable VehicleManager.Occupied<?> getPreviousOccupied();
+    @Nullable
+    VehicleManager.Occupied<?> getPreviousOccupied();
 
     /**
      * Returns a {@link List} containing all {@link Path}s this {@link Vehicle} is currently following.
@@ -37,7 +37,8 @@ public interface Vehicle extends Comparable<Vehicle> {
     List<? extends Path> getPaths();
 
     /**
-     * Deletes the entire move queue and moves directly to the provided {@link Region.Node}.
+     * Deletes the entire move queue and moves directly to the provided
+     * {@link Region.Node}.
      */
     default void moveDirect(Region.Node node) {
         moveDirect(node, (v, t) -> {
@@ -56,7 +57,8 @@ public interface Vehicle extends Comparable<Vehicle> {
 
     /**
      * Adds the provided {@link Region.Node} to the move queue.
-     * As soon as the vehicle arrives at the specified node, {@code arrivalAction} is run.
+     * As soon as the vehicle arrives at the specified node, {@code arrivalAction}
+     * is run.
      */
     void moveQueued(Region.Node node, BiConsumer<? super Vehicle, Long> arrivalAction);
 
@@ -68,7 +70,8 @@ public interface Vehicle extends Comparable<Vehicle> {
     double getCapacity();
 
     /**
-     * Accessor for the vehicle manager that is responsible for movements of this vehicle
+     * Accessor for the vehicle manager that is responsible for movements of this
+     * vehicle
      *
      * @return the vehicle manager that is responsible for this vehicle
      */
@@ -76,13 +79,17 @@ public interface Vehicle extends Comparable<Vehicle> {
 
     /**
      * Returns the {@link Region.Node} this {@link Vehicle} starts on.
+     *
      * @return The {@link Region.Node} this {@link Vehicle} starts on.
      */
     VehicleManager.Occupied<? extends Region.Node> getStartingNode();
 
     /**
-     * Returns all {@link ConfirmedOrder}s that are loaded onto this {@link Vehicle}.
-     * @return All {@link ConfirmedOrder}s that are loaded onto this {@link Vehicle}.
+     * Returns all {@link ConfirmedOrder}s that are loaded onto this
+     * {@link Vehicle}.
+     *
+     * @return All {@link ConfirmedOrder}s that are loaded onto this
+     *         {@link Vehicle}.
      */
     Collection<ConfirmedOrder> getOrders();
 
@@ -92,25 +99,40 @@ public interface Vehicle extends Comparable<Vehicle> {
     void reset();
 
     /**
-     * Returns the total weight of all {@link ConfirmedOrder}s loaded onto this {@link Vehicle}.
-     * @return The total weight of all {@link ConfirmedOrder}s loaded onto this {@link Vehicle}.
+     * Returns the total weight of all {@link ConfirmedOrder}s loaded onto this
+     * {@link Vehicle}.
+     *
+     * @return The total weight of all {@link ConfirmedOrder}s loaded onto this
+     *         {@link Vehicle}.
      */
     default double getCurrentWeight() {
-        return crash(); // TODO: H5.1 - remove if implemented
+        Collection<ConfirmedOrder> orders = getOrders();
+        double weight = 0;
+        for (ConfirmedOrder order : orders) {
+            weight += order.getWeight();
+        }
+        return weight;
     }
 
     /**
-     * Represents a path from one {@link Region.Node} to another {@link Region.Node}.<p>
+     * Represents a path from one {@link Region.Node} to another
+     * {@link Region.Node}.
+     * <p>
      *
-     * The path is represented as a {@link Deque<Region.Node>} that does not contain the start {@link Region.Node} of the path.
+     * The path is represented as a {@link Deque<Region.Node>} that does not contain
+     * the start {@link Region.Node} of the path.
      */
     interface Path {
 
         /**
-         * Returns a {@link Deque<Region.Node>} containing all {@link Region.Node}s of this {@link Path}.
-         * @return A {@link Deque<Region.Node>} containing all {@link Region.Node}s of this {@link Path}
-         * from to start node (excluded) to the end node (included). When the start and the end node are the same the
-         * {@link Deque} is empty.
+         * Returns a {@link Deque<Region.Node>} containing all {@link Region.Node}s of
+         * this {@link Path}.
+         *
+         * @return A {@link Deque<Region.Node>} containing all {@link Region.Node}s of
+         *         this {@link Path}
+         *         from to start node (excluded) to the end node (included). When the
+         *         start and the end node are the same the
+         *         {@link Deque} is empty.
          */
         Deque<Region.Node> nodes();
 
