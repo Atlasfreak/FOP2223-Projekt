@@ -299,6 +299,9 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
                 cellData.getValue().getStartingNode().getComponent().getLocation().toString()));
         vehicleCapacityTableColumn.setCellValueFactory(new PropertyValueFactory<>("capacity"));
 
+        vehiclesTableView.getColumns().addAll(vehicleIdTableColumn, vehicleLocationTableColumn,
+                vehicleCapacityTableColumn);
+
         final Tab edgesTab = new Tab("Edges");
         final Tab vehiclesTab = new Tab("Vehicles");
         final Tab otherTab = new Tab("Other"); // Note: simulationLength & orderGenerator
