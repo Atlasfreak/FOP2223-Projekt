@@ -130,12 +130,12 @@ public class Projekt_RubricProvider implements RubricProvider {
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeAllEdges"));
 
     public static final Criterion H2_4_3 = createCriterion("Die Methode putEdge der Klasse RegionImpl funktioniert korrekt wenn edges die erste Node bereits enthält",
-        () -> TutorTests_H2_RegionImplTest.class.getMethod("testGetEdgeSimple"));
+        () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeSimple"));
 
     public static final Criterion H2_4_4 = createCriterion("Die Methode putEdge der Klasse RegionImpl funktioniert vollständig korrekt",
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeException"),
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeAllEdges"),
-        () -> TutorTests_H2_RegionImplTest.class.getMethod("testGetEdgeSimple"),
+        () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeSimple"),
         () -> TutorTests_H2_RegionImplTest.class.getMethod("testPutEdgeComplex"));
 
     public static final Criterion H2_4 = createParentCriterion("2.4", "putEdge", H2_4_1, H2_4_2, H2_4_3, H2_4_4);
@@ -282,17 +282,20 @@ public class Projekt_RubricProvider implements RubricProvider {
     public static final Criterion H5_4_3 = createCriterion("Die Methode moveDirect der Klasse VehicleImpl funktioniert korrekt wenn sich das Fahrzeug auf einem Knoten befindet",
         () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnNode"));
 
-    public static final Criterion H5_4_4 = createCriterion("Die Methode moveDirect der Klasse VehicleImpl funktioniert korrekt wenn sich das Fahrzeug auf einer Kante befindet",
-        2,
-        () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnEdge"));
+    public static final Criterion H5_4_4 = createCriterion("Die Methode moveDirect der Klasse VehicleImpl funktioniert korrekt wenn sich das Fahrzeug auf einer Kante befindet und sich das Fahrzeug momentan zum Knoten A der Kante bewegt",
+        () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnEdgeToNodeA"));
 
-    public static final Criterion H5_4_5 = createCriterion("Die Methode moveDirect der Klasse VehicleImpl funktioniert vollständig korrekt",
+    public static final Criterion H5_4_5 = createCriterion("Die Methode moveDirect der Klasse VehicleImpl funktioniert korrekt wenn sich das Fahrzeug auf einer Kante befindet und sich das Fahrzeug momentan zum Knoten B der Kante bewegt",
+        () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnEdgeToNodeB"));
+
+    public static final Criterion H5_4_6 = createCriterion("Die Methode moveDirect der Klasse VehicleImpl funktioniert vollständig korrekt",
         () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectException"),
         () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectClear"),
         () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnNode"),
-        () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnEdge"));
+        () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnEdgeToNodeA"),
+        () -> TutorTests_H5_VehicleTest.class.getMethod("testMoveDirectOnEdgeToNodeB"));
 
-    public static final Criterion H5_4 = createParentCriterion("5.4", "Auf anderen Wegen", H5_4_1, H5_4_2, H5_4_3, H5_4_4, H5_4_5);
+    public static final Criterion H5_4 = createParentCriterion("5.4", "Auf anderen Wegen", H5_4_1, H5_4_2, H5_4_3, H5_4_4, H5_4_5, H5_4_6);
 
     public static final Criterion H5 = createParentCriterion("5", "Hab mein Wage, voll gelade...", H5_1, H5_2, H5_3, H5_4);
 
