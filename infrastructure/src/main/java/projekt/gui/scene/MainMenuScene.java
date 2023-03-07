@@ -1,11 +1,28 @@
 package projekt.gui.scene;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -13,7 +30,12 @@ import javafx.util.StringConverter;
 import projekt.delivery.archetype.ProblemArchetype;
 import projekt.delivery.archetype.ProblemGroup;
 import projekt.delivery.archetype.ProblemGroupImpl;
+import projekt.delivery.rating.AmountDeliveredRater;
+import projekt.delivery.rating.InTimeRater;
+import projekt.delivery.rating.Rater;
 import projekt.delivery.rating.RatingCriteria;
+import projekt.delivery.rating.TravelDistanceRater;
+import projekt.delivery.routing.Vehicle;
 import projekt.delivery.service.BasicDeliveryService;
 import projekt.delivery.service.BogoDeliveryService;
 import projekt.delivery.service.DeliveryService;
@@ -23,15 +45,13 @@ import projekt.gui.controller.MainMenuSceneController;
 import projekt.io.IOHelper;
 import projekt.runner.RunnerImpl;
 
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-
 public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
     private int simulationRuns = 1;
     private DeliveryService.Factory deliveryServiceFactory;
     private final Insets preferredPadding = new Insets(20, 20, 20, 20);
+
+    private ObjectProperty<ProblemArchetype> selectedProblemProperty = new SimpleObjectProperty<>();
 
     public MainMenuScene() {
         super(new MainMenuSceneController(), "Delivery Service Simulation");
@@ -43,7 +63,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
     }
 
     /**
-     * Initializes this {@link MainMenuScene} with the {@link ProblemArchetype} presets in the resource dir.
+     * Initializes this {@link MainMenuScene} with the {@link ProblemArchetype}
+     * presets in the resource dir.
      */
     public void init() {
         super.init(IOHelper.readProblems());
@@ -57,19 +78,18 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         optionsVbox.setPadding(preferredPadding);
 
         optionsVbox.getChildren().addAll(
-            createStartSimulationButton(),
-            createSimulationRunsHBox(),
-            createDeliveryServiceChoiceBox()
-            //TODO H11.2
-        );
+                createStartSimulationButton(),
+                createSimulationRunsHBox(),
+                createDeliveryServiceChoiceBox(),
+                createProblemsVBox());
 
         optionsVbox.getChildren().stream()
-            .filter(Button.class::isInstance)
-            .map(Button.class::cast)
-            .forEach(button -> {
-                button.setPrefSize(200, 50);
-                button.setMaxWidth(Double.MAX_VALUE);
-            });
+                .filter(Button.class::isInstance)
+                .map(Button.class::cast)
+                .forEach(button -> {
+                    button.setPrefSize(200, 50);
+                    button.setMaxWidth(Double.MAX_VALUE);
+                });
 
         return optionsVbox;
     }
@@ -77,50 +97,54 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
     private Button createStartSimulationButton() {
         Button startSimulationButton = new Button("Start Simulation");
         startSimulationButton.setOnAction((e) -> {
-            //store the SimulationScene
+            // store the SimulationScene
             AtomicReference<SimulationScene> simulationScene = new AtomicReference<>();
-            //Execute the GUIRunner in a separate Thread to prevent it from blocking the GUI
+            // Execute the GUIRunner in a separate Thread to prevent it from blocking the
+            // GUI
             new Thread(() -> {
-                ProblemGroup problemGroup = new ProblemGroupImpl(problems, Arrays.stream(RatingCriteria.values()).toList());
+                ProblemGroup problemGroup = new ProblemGroupImpl(problems,
+                        Arrays.stream(RatingCriteria.values()).toList());
                 new RunnerImpl().run(
-                    problemGroup,
-                    new SimulationConfig(20),
-                    simulationRuns,
-                    deliveryServiceFactory,
-                    (simulation, problem, i) -> {
-                        //CountDownLatch to check if the SimulationScene got created
-                        CountDownLatch countDownLatch = new CountDownLatch(1);
-                        //execute the scene switching on the javafx application thread
-                        Platform.runLater(() -> {
-                            //switch to the SimulationScene and set everything up
-                            SimulationScene scene = (SimulationScene) SceneSwitcher.loadScene(SceneSwitcher.SceneType.SIMULATION, getController().getStage());
-                            scene.init(simulation, problem, i, simulationRuns);
-                            simulation.addListener(scene);
-                            simulationScene.set(scene);
-                            countDownLatch.countDown();
-                        });
+                        problemGroup,
+                        new SimulationConfig(20),
+                        simulationRuns,
+                        deliveryServiceFactory,
+                        (simulation, problem, i) -> {
+                            // CountDownLatch to check if the SimulationScene got created
+                            CountDownLatch countDownLatch = new CountDownLatch(1);
+                            // execute the scene switching on the javafx application thread
+                            Platform.runLater(() -> {
+                                // switch to the SimulationScene and set everything up
+                                SimulationScene scene = (SimulationScene) SceneSwitcher
+                                        .loadScene(SceneSwitcher.SceneType.SIMULATION, getController().getStage());
+                                scene.init(simulation, problem, i, simulationRuns);
+                                simulation.addListener(scene);
+                                simulationScene.set(scene);
+                                countDownLatch.countDown();
+                            });
 
-                        try {
-                            //wait for the SimulationScene to be set
-                            countDownLatch.await();
-                        } catch (InterruptedException exc) {
-                            throw new RuntimeException(exc);
-                        }
-                    },
-                    (simulation, problem) -> {
-                        //remove the scene from the list of listeners
-                        simulation.removeListener(simulationScene.get());
+                            try {
+                                // wait for the SimulationScene to be set
+                                countDownLatch.await();
+                            } catch (InterruptedException exc) {
+                                throw new RuntimeException(exc);
+                            }
+                        },
+                        (simulation, problem) -> {
+                            // remove the scene from the list of listeners
+                            simulation.removeListener(simulationScene.get());
 
-                        //check if gui got stopped
-                        return simulationScene.get().isClosed();
-                    },
-                    result -> {
-                        //execute the scene switching on the javafx thread
-                        Platform.runLater(() -> {
-                            RaterScene raterScene = (RaterScene) SceneSwitcher.loadScene(SceneSwitcher.SceneType.RATING, getController().getStage());
-                            raterScene.init(problemGroup.problems(), result);
+                            // check if gui got stopped
+                            return simulationScene.get().isClosed();
+                        },
+                        result -> {
+                            // execute the scene switching on the javafx thread
+                            Platform.runLater(() -> {
+                                RaterScene raterScene = (RaterScene) SceneSwitcher
+                                        .loadScene(SceneSwitcher.SceneType.RATING, getController().getStage());
+                                raterScene.init(problemGroup.problems(), result);
+                            });
                         });
-                    });
             }).start();
         });
 
@@ -135,7 +159,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         TextField simulationRunsTextField = createPositiveIntegerTextField(value -> simulationRuns = value, 1);
         simulationRunsTextField.setMaxWidth(50);
 
-        simulationRunsHBox.getChildren().addAll(simulationRunsLabel, createIntermediateRegion(0), simulationRunsTextField);
+        simulationRunsHBox.getChildren().addAll(simulationRunsLabel, createIntermediateRegion(0),
+                simulationRunsTextField);
 
         return simulationRunsHBox;
     }
@@ -153,10 +178,9 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         ChoiceBox<DeliveryService.Factory> choiceBox = new ChoiceBox<>();
 
         choiceBox.getItems().setAll(
-            DeliveryService.BASIC,
-            DeliveryService.OUR,
-            DeliveryService.BOGO
-        );
+                DeliveryService.BASIC,
+                DeliveryService.OUR,
+                DeliveryService.BOGO);
         choiceBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(DeliveryService.Factory deliveryService) {
@@ -179,8 +203,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
             }
         });
 
-        choiceBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) ->
-            deliveryServiceFactory = choiceBox.getItems().get((Integer) newValue));
+        choiceBox.getSelectionModel().selectedIndexProperty().addListener(
+                (obs, oldValue, newValue) -> deliveryServiceFactory = choiceBox.getItems().get((Integer) newValue));
 
         choiceBox.getSelectionModel().select(0);
 
@@ -189,6 +213,98 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         deliveryServiceVBox.getChildren().addAll(label, choiceBox);
 
         return deliveryServiceVBox;
+    }
+
+    private VBox createProblemsVBox() {
+        Label problemsLabel = new Label("Problems:");
+
+        ListView<ProblemArchetype> problemsListView = createProblemsListView();
+        problemsListView.getSelectionModel().selectedIndexProperty().addListener(
+                (obs, oldValue, newValue) -> selectedProblemProperty
+                        .set(problemsListView.getItems().get((Integer) newValue)));
+
+        Label problemDetailsLabel = new Label();
+        problemDetailsLabel.textProperty()
+                .bind(selectedProblemProperty.asString().concat(" details:"));
+
+        TabPane problemDetailsPane = createProblemDetailsPane();
+
+        VBox wrapperVBox = new VBox(problemsLabel, problemsListView, problemDetailsLabel, problemDetailsPane);
+        wrapperVBox.setAlignment(Pos.CENTER);
+        problemsListView.getSelectionModel().select(0);
+        return wrapperVBox;
+    }
+
+    private TabPane createProblemDetailsPane() {
+        final TabPane pane = new TabPane();
+        pane.maxHeight(300);
+
+        final Tab ratersTab = new Tab("Raters");
+
+        final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
+        selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
+            System.out.println("I want die");
+            System.out.println(obs.getValue().raterFactoryMap());
+            raterTableData.clear();
+            for (RatingCriteria criteria : RatingCriteria.values()) {
+                Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
+                data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
+                raterTableData.add(data);
+            }
+        });
+
+        final TableView<Map<RatingCriteria, Rater.Factory>> ratersTableView = new TableView<>(
+                FXCollections.observableList(raterTableData));
+        final TableColumn<Map<RatingCriteria, Rater.Factory>, String> criteriaNameTableColumn = new TableColumn<>(
+                "Criteria");
+        final TableColumn<Map<RatingCriteria, Rater.Factory>, String> raterParametersTableColumn = new TableColumn<>(
+                "Parameters");
+        criteriaNameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
+                cellData.getValue().keySet().toArray()[0].toString()));
+        raterParametersTableColumn.setCellValueFactory((cellData) -> {
+            Rater.Factory raterFactory = cellData.getValue().values().stream().findFirst().get();
+            if (raterFactory == null) {
+                return new SimpleStringProperty("unused");
+            }
+            if (raterFactory instanceof AmountDeliveredRater.Factory) {
+                AmountDeliveredRater.Factory castedRaterFactory = (AmountDeliveredRater.Factory) raterFactory;
+                return new SimpleStringProperty(String.format("factor: %s", castedRaterFactory.factor));
+            }
+            if (raterFactory instanceof InTimeRater.Factory) {
+                InTimeRater.Factory castedFactory = (InTimeRater.Factory) raterFactory;
+                return new SimpleStringProperty(String.format("ignoredTicksOff: %s, maxTicksOff: %s",
+                        castedFactory.ignoredTicksOff, castedFactory.maxTicksOff));
+            }
+            if (raterFactory instanceof TravelDistanceRater.Factory) {
+                TravelDistanceRater.Factory castedFactory = (TravelDistanceRater.Factory) raterFactory;
+                return new SimpleStringProperty(String.format("factor: %s", castedFactory.factor));
+            }
+        });
+
+        ratersTableView.getColumns().addAll(criteriaNameTableColumn, raterParametersTableColumn);
+        ratersTab.setContent(ratersTableView);
+
+        final Tab nodesTab = new Tab("Nodes");
+        final TableView<Vehicle> vehcilesTableView = new TableView<>();
+        final TableColumn<Vehicle, String> vehicleNameTableColumn = new TableColumn<>(
+                "Name");
+        final TableColumn<Vehicle, String> vehicleLocationTableColumn = new TableColumn<>("Location");
+        final TableColumn<Vehicle, String> vehicleCapacityTableColumn = new TableColumn<>("Capacity");
+
+        final Tab edgesTab = new Tab("Edges");
+        final Tab vehiclesTab = new Tab("Vehicles");
+        final Tab otherTab = new Tab("Other"); // Note: simulationLength & orderGenerator
+
+        pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, otherTab);
+
+        return pane;
+    }
+
+    private ListView<ProblemArchetype> createProblemsListView() {
+        ListView<ProblemArchetype> listView = new ListView<>(FXCollections.observableList(problems));
+        listView.setMaxHeight(100);
+        listView.setMaxWidth(150);
+        return listView;
     }
 
     @Override
