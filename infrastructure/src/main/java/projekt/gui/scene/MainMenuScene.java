@@ -24,6 +24,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -259,6 +260,7 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
                 "Criteria");
         final TableColumn<Map<RatingCriteria, Rater.Factory>, String> raterParametersTableColumn = new TableColumn<>(
                 "Parameters");
+
         criteriaNameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
                 cellData.getValue().keySet().toArray()[0].toString()));
         raterParametersTableColumn.setCellValueFactory((cellData) -> {
@@ -286,11 +288,16 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         ratersTab.setContent(ratersTableView);
 
         final Tab nodesTab = new Tab("Nodes");
-        final TableView<Vehicle> vehcilesTableView = new TableView<>();
-        final TableColumn<Vehicle, String> vehicleNameTableColumn = new TableColumn<>(
-                "Name");
+        final TableView<Vehicle> vehiclesTableView = new TableView<>(FXCollections
+                .observableList(selectedProblemProperty.get().vehicleManager().getAllVehicles().stream().toList()));
+        final TableColumn<Vehicle, String> vehicleIdTableColumn = new TableColumn<>("Id");
         final TableColumn<Vehicle, String> vehicleLocationTableColumn = new TableColumn<>("Location");
         final TableColumn<Vehicle, String> vehicleCapacityTableColumn = new TableColumn<>("Capacity");
+
+        vehicleIdTableColumn.setCellValueFactory(new PropertyValueFactory<>("Id"));
+        vehicleLocationTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
+                cellData.getValue().getStartingNode().getComponent().getLocation().toString()));
+        vehicleCapacityTableColumn.setCellValueFactory(new PropertyValueFactory<>("capacity"));
 
         final Tab edgesTab = new Tab("Edges");
         final Tab vehiclesTab = new Tab("Vehicles");
