@@ -286,6 +286,7 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         });
 
         ratersTableView.getColumns().addAll(criteriaNameTableColumn, raterParametersTableColumn);
+
         ratersTab.setContent(ratersTableView);
 
         final Tab nodesTab = new Tab("Nodes");
@@ -298,10 +299,12 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final TableColumn<Vehicle, String> vehicleLocationTableColumn = new TableColumn<>("Location");
         final TableColumn<Vehicle, String> vehicleCapacityTableColumn = new TableColumn<>("Capacity");
 
-        vehicleIdTableColumn.setCellValueFactory(new PropertyValueFactory<>("Id"));
+        vehicleIdTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Integer.toString(
+                cellData.getValue().getId())));
         vehicleLocationTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
                 cellData.getValue().getStartingNode().getComponent().getLocation().toString()));
-        vehicleCapacityTableColumn.setCellValueFactory(new PropertyValueFactory<>("capacity"));
+        vehicleCapacityTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Double.toString(
+                cellData.getValue().getCapacity())));
 
         vehiclesTableView.getColumns().addAll(vehicleIdTableColumn, vehicleLocationTableColumn,
                 vehicleCapacityTableColumn);
