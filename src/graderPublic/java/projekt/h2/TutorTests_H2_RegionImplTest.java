@@ -297,6 +297,7 @@ public class TutorTests_H2_RegionImplTest {
         assertTrue(edges.get(locationA).containsKey(locationD), context,
             TR -> "RegionImpl#putEdge(Edge) does not add locationB as a key to the inner edges map if there are already entries for locationA.");
 
+
         assertSame(edge, edges.get(locationA).get(locationD), context,
             TR -> "RegionImpl#putEdge(Edge) does not add the given edge to the inner edges map if there are already entries for locationA.");
     }
@@ -338,7 +339,6 @@ public class TutorTests_H2_RegionImplTest {
         Context build = contextBuilder()
             .subject("RegionImpl#getNodes()")
             .build();
-
         Collection<Region.Node> actual = region.getNodes();
 
         assertThrows(UnsupportedOperationException.class, () -> actual.add(null), build,
@@ -362,7 +362,6 @@ public class TutorTests_H2_RegionImplTest {
         Context build = contextBuilder()
             .subject("RegionImpl#getEdges()")
             .build();
-
         Collection<Region.Edge> actual = region.getEdges();
 
         assertThrows(UnsupportedOperationException.class, () -> actual.add(null), build,
@@ -443,7 +442,6 @@ public class TutorTests_H2_RegionImplTest {
         Field edgesField = region.getClass().getDeclaredField("edges");
         edgesField.setAccessible(true);
         Map<Location, Map<Location, Region.Edge>> edges = (Map<Location, Map<Location, Region.Edge>>) edgesField.get(region);
-
         Field allEdgesField = region.getClass().getDeclaredField("allEdges");
         allEdgesField.setAccessible(true);
         List<Region.Edge> allEdges = (List<Region.Edge>) allEdgesField.get(region);

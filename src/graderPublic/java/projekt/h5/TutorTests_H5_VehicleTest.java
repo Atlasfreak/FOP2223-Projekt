@@ -254,7 +254,6 @@ public class TutorTests_H5_VehicleTest {
             .add("current node", locationE)
             .add("input", locationE)
             .build();
-
         assertThrows(IllegalArgumentException.class, () -> vehicle.moveQueued(restaurantE, (v, t) -> {
             }), context,
             TR -> "Vehicle.moveQueued(Node, Consumer<Vehicle>) did not throw an IllegalArgumentException when the node to move to was the currently occupied node");
@@ -463,7 +462,6 @@ public class TutorTests_H5_VehicleTest {
             .add("current node", locationE)
             .add("input", locationE)
             .build();
-
         assertThrows(IllegalArgumentException.class, () -> vehicle.moveDirect(restaurantE, (v, t) -> {
             }), context,
             TR -> "Vehicle.moveQueued(Node, Consumer<Vehicle>) did not throw an IllegalArgumentException when the node to move to was the currently occupied node");
