@@ -45,11 +45,11 @@ class RegionImpl implements Region {
     @Override
     public @Nullable Edge getEdge(Location locationA, Location locationB) {
         Edge result = null;
-        if (edges.containsKey(locationA)) {
+        if (edges.containsKey(locationA) && edges.get(locationA).containsKey(locationB)) {
             result = edges.get(locationA).get(locationB);
         }
         if (result == null && edges.containsKey(locationB)) {
-            result = edges.get(locationB).get(locationB);
+            result = edges.get(locationB).get(locationA);
         }
         return result;
     }
@@ -98,7 +98,10 @@ class RegionImpl implements Region {
         if (edge.getRegion() != this || edge.getNodeA().getRegion() != this || edge.getNodeB().getRegion() != this) {
             throw new IllegalArgumentException(String.format("Edge %s has incorrect region", edge.toString()));
         }
-        edges.put(edge.getLocationA(), Map.of(edge.getLocationB(), edge));
+        if (!edges.containsKey(edge.getLocationA())) {
+            edges.put(edge.getLocationA(), new HashMap<>());
+        }
+        edges.get(edge.getLocationA()).put(edge.getLocationB(), edge);
         allEdges.add(edge);
     }
 
