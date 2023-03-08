@@ -401,15 +401,22 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final TableColumn<Map<RatingCriteria, Rater.Factory>, String> raterParametersTableColumn = new TableColumn<>(
                 "Parameters");
 
-        criteriaNameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
-                cellData.getValue().keySet().toArray()[0].toString()));
-        raterNameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(cellData.getValue().values()
-                .stream().findFirst().get().getClass().getDeclaringClass().getSimpleName()));
+        criteriaNameTableColumn.setCellValueFactory(
+                (cellData) -> new SimpleStringProperty(cellData.getValue().keySet().toArray()[0].toString()));
+        raterNameTableColumn.setCellValueFactory((cellData) -> {
+            if (cellData.getValue().values().contains(null)) {
+                return new SimpleStringProperty("");
+            }
+            return new SimpleStringProperty(cellData.getValue().values()
+                    .stream().findFirst().get().getClass().getDeclaringClass().getSimpleName());
+        });
         raterParametersTableColumn.setCellValueFactory((cellData) -> {
-            Rater.Factory raterFactory = cellData.getValue().values().stream().findFirst().get();
-            if (raterFactory == null) {
+            if (cellData.getValue().values().contains(null)) {
                 return new SimpleStringProperty("unused");
             }
+
+            Rater.Factory raterFactory = cellData.getValue().values().stream().findFirst().get();
+
             if (raterFactory instanceof AmountDeliveredRater.Factory) {
                 AmountDeliveredRater.Factory castedRaterFactory = (AmountDeliveredRater.Factory) raterFactory;
                 return new SimpleStringProperty(String.format("factor: %s", castedRaterFactory.factor));
