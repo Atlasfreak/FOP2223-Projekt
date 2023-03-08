@@ -35,6 +35,8 @@ import projekt.delivery.rating.InTimeRater;
 import projekt.delivery.rating.Rater;
 import projekt.delivery.rating.RatingCriteria;
 import projekt.delivery.rating.TravelDistanceRater;
+import projekt.delivery.routing.Region.Edge;
+import projekt.delivery.routing.Region.Node;
 import projekt.delivery.routing.Vehicle;
 import projekt.delivery.service.BasicDeliveryService;
 import projekt.delivery.service.BogoDeliveryService;
@@ -239,9 +241,88 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final TabPane pane = new TabPane();
         pane.maxHeight(300);
 
-        final Tab ratersTab = new Tab("Raters");
+        final Tab ratersTab = createRatersTab();
 
-        final TableView<Map<RatingCriteria, Rater.Factory>> ratersTableView = new TableView<>();
+        final TableView<Map<RatingCriteria, Rater.Factory>> ratersTableView = createRatersTable();
+
+        ratersTab.setContent(ratersTableView);
+
+        final Tab nodesTab = new Tab("Nodes");
+        final TableView<Node> nodesTableView = createNodesTableView();
+
+        nodesTab.setContent(nodesTableView);
+
+        final Tab edgesTab = new Tab("Edges");
+        final TableView<Edge> edgesTableView = createEdgesTableView();
+
+        edgesTab.setContent(edgesTableView);
+
+        final Tab vehiclesTab = new Tab("Vehicles");
+        final TableView<Vehicle> vehiclesTableView = createVehiclesTable();
+
+        vehiclesTab.setContent(vehiclesTableView);
+
+        final Tab otherTab = new Tab("Other"); // Note: simulationLength & orderGenerator & distanceCalculator
+
+        pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, otherTab);
+
+        final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
+        final List<Vehicle> vehiclesTableData = new ArrayList<>();
+
+        selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
+            System.out.println("aaaaaaaaah Whyyyyyy");
+            raterTableData.clear();
+            vehiclesTableData.clear();
+            vehiclesTableData.addAll(obs.getValue().vehicleManager().getAllVehicles());
+            for (RatingCriteria criteria : RatingCriteria.values()) {
+                Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
+                data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
+                raterTableData.add(data);
+            }
+            ratersTableView.setItems(FXCollections.observableList(raterTableData));
+            vehiclesTableView.setItems(FXCollections.observableList(vehiclesTableData));
+        });
+
+        return pane;
+    }
+
+    private TableView<Edge> createEdgesTableView() {
+        final TableView<Edge> tableView = new TableView<>();
+        final TableColumn<Edge, String> nameTableColumn = new TableColumn<>("Name");
+        final TableColumn<Edge, String> locationATableColumn = new TableColumn<>("LocationB");
+        final TableColumn<Edge, String> locationBTableColumn = new TableColumn<>("LocationA");
+        final TableColumn<Edge, String> lengthTableColumn = new TableColumn<>("Length");
+
+        return tableView;
+    }
+
+    private TableView<Node> createNodesTableView() {
+        final TableView<Node> tableView = new TableView<>();
+        final TableColumn<Node, String> nameTableColumn = new TableColumn<>("Name");
+        final TableColumn<Node, String> locationTableColumn = new TableColumn<>("Location");
+        return tableView;
+    }
+
+    private TableView<Vehicle> createVehiclesTable() {
+        final TableView<Vehicle> tableView = new TableView<>();
+        final TableColumn<Vehicle, String> idTableColumn = new TableColumn<>("Id");
+        final TableColumn<Vehicle, String> locationTableColumn = new TableColumn<>("Location");
+        final TableColumn<Vehicle, String> capacityTableColumn = new TableColumn<>("Capacity");
+
+        idTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Integer.toString(
+                cellData.getValue().getId())));
+        locationTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
+                cellData.getValue().getStartingNode().getComponent().getLocation().toString()));
+        capacityTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Double.toString(
+                cellData.getValue().getCapacity())));
+
+        tableView.getColumns().addAll(idTableColumn, locationTableColumn,
+                capacityTableColumn);
+        return tableView;
+    }
+
+    private TableView<Map<RatingCriteria, Rater.Factory>> createRatersTable() {
+        final TableView<Map<RatingCriteria, Rater.Factory>> tableView = new TableView<>();
         final TableColumn<Map<RatingCriteria, Rater.Factory>, String> criteriaNameTableColumn = new TableColumn<>(
                 "Criteria");
         final TableColumn<Map<RatingCriteria, Rater.Factory>, String> raterNameTableColumn = new TableColumn<>(
@@ -276,54 +357,12 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
             return new SimpleStringProperty("unknown");
         });
 
-        ratersTableView.getColumns().addAll(criteriaNameTableColumn, raterNameTableColumn, raterParametersTableColumn);
+        tableView.getColumns().addAll(criteriaNameTableColumn, raterNameTableColumn, raterParametersTableColumn);
+        return tableView;
+    }
 
-        ratersTab.setContent(ratersTableView);
-
-        final Tab nodesTab = new Tab("Nodes");
-
-        final Tab edgesTab = new Tab("Edges");
-
-        final Tab vehiclesTab = new Tab("Vehicles");
-        final TableView<Vehicle> vehiclesTableView = new TableView<>();
-        final TableColumn<Vehicle, String> vehicleIdTableColumn = new TableColumn<>("Id");
-        final TableColumn<Vehicle, String> vehicleLocationTableColumn = new TableColumn<>("Location");
-        final TableColumn<Vehicle, String> vehicleCapacityTableColumn = new TableColumn<>("Capacity");
-
-        vehicleIdTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Integer.toString(
-                cellData.getValue().getId())));
-        vehicleLocationTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
-                cellData.getValue().getStartingNode().getComponent().getLocation().toString()));
-        vehicleCapacityTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Double.toString(
-                cellData.getValue().getCapacity())));
-
-        vehiclesTableView.getColumns().addAll(vehicleIdTableColumn, vehicleLocationTableColumn,
-                vehicleCapacityTableColumn);
-
-        vehiclesTab.setContent(vehiclesTableView);
-
-        final Tab otherTab = new Tab("Other"); // Note: simulationLength & orderGenerator & distanceCalculator
-
-        pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, otherTab);
-
-        final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
-        final List<Vehicle> vehiclesTableData = new ArrayList<>();
-
-        selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
-            System.out.println("aaaaaaaaah Whyyyyyy");
-            raterTableData.clear();
-            vehiclesTableData.clear();
-            vehiclesTableData.addAll(obs.getValue().vehicleManager().getAllVehicles());
-            for (RatingCriteria criteria : RatingCriteria.values()) {
-                Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
-                data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
-                raterTableData.add(data);
-            }
-            ratersTableView.setItems(FXCollections.observableList(raterTableData));
-            vehiclesTableView.setItems(FXCollections.observableList(vehiclesTableData));
-        });
-
-        return pane;
+    private Tab createRatersTab() {
+        return new Tab("Raters");
     }
 
     private ListView<ProblemArchetype> createProblemsListView() {
