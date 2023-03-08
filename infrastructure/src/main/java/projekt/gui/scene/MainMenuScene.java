@@ -9,9 +9,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.application.Platform;
+import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -30,6 +33,7 @@ import javafx.util.StringConverter;
 import projekt.delivery.archetype.ProblemArchetype;
 import projekt.delivery.archetype.ProblemGroup;
 import projekt.delivery.archetype.ProblemGroupImpl;
+import projekt.delivery.generator.FridayOrderGenerator;
 import projekt.delivery.rating.AmountDeliveredRater;
 import projekt.delivery.rating.InTimeRater;
 import projekt.delivery.rating.Rater;
@@ -262,9 +266,12 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
         vehiclesTab.setContent(vehiclesTableView);
 
-        final Tab otherTab = new Tab("Other"); // Note: simulationLength & orderGenerator & distanceCalculator
+        final Tab othersTab = new Tab("Other"); // Note: simulationLength & orderGenerator & distanceCalculator
+        final VBox othersVBox = createOthersVBox();
 
-        pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, otherTab);
+        othersTab.setContent(othersVBox);
+
+        pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, othersTab);
 
         selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
             final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
@@ -289,6 +296,45 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         });
 
         return pane;
+    }
+
+    private VBox createOthersVBox() {
+        final LongProperty simulationLengthProperty = new SimpleLongProperty();
+        final StringProperty orderGeneratorClassNameProperty = new SimpleStringProperty();
+        final StringProperty orderGeneratorParametersProperty = new SimpleStringProperty();
+
+        selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
+            simulationLengthProperty.set(obs.getValue().simulationLength());
+            orderGeneratorClassNameProperty
+                    .set(obs.getValue().orderGeneratorFactory().getClass().getDeclaringClass().getSimpleName());
+            String parametersText = "unknown";
+            if (obs.getValue().orderGeneratorFactory() instanceof FridayOrderGenerator.Factory) {
+                FridayOrderGenerator.Factory castedFactory = (FridayOrderGenerator.Factory) obs.getValue()
+                        .orderGeneratorFactory();
+                parametersText = String.format(
+                        "orderCount: %s\ndeliveryInterval: %s\nmaxWeight: %s\nlastTick: %s\nstandardDeviation: %s\nseed: %s",
+                        castedFactory.orderCount, castedFactory.deliveryInterval, castedFactory.maxWeight,
+                        castedFactory.lastTick, castedFactory.standardDeviation, castedFactory.seed);
+            }
+            orderGeneratorParametersProperty.set(parametersText);
+        });
+
+        final VBox othersVBox = new VBox();
+        othersVBox.setAlignment(Pos.CENTER);
+
+        Label simulationLengthLabel = new Label();
+        simulationLengthLabel.textProperty().bind(
+                new SimpleStringProperty("Simulation length: ").concat(simulationLengthProperty).concat(" ticks"));
+
+        Label orderGeneratorLabel = new Label();
+        orderGeneratorLabel.textProperty().bind(new SimpleStringProperty("Order generator: ")
+                .concat(orderGeneratorClassNameProperty));
+        Label orderGeneratorParameterLabel = new Label();
+        orderGeneratorParameterLabel.textProperty()
+                .bind(new SimpleStringProperty("Parameters: ").concat(orderGeneratorParametersProperty));
+
+        othersVBox.getChildren().addAll(simulationLengthLabel, orderGeneratorLabel, orderGeneratorParameterLabel);
+        return othersVBox;
     }
 
     private TableView<Edge> createEdgesTableView() {
