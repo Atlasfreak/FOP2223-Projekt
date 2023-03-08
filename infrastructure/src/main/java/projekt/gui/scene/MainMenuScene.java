@@ -302,6 +302,7 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final LongProperty simulationLengthProperty = new SimpleLongProperty();
         final StringProperty orderGeneratorClassNameProperty = new SimpleStringProperty();
         final StringProperty orderGeneratorParametersProperty = new SimpleStringProperty();
+        final StringProperty distanceCalculatorClassNameProperty = new SimpleStringProperty();
 
         selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
             simulationLengthProperty.set(obs.getValue().simulationLength());
@@ -317,15 +318,22 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
                         castedFactory.lastTick, castedFactory.standardDeviation, castedFactory.seed);
             }
             orderGeneratorParametersProperty.set(parametersText);
+            distanceCalculatorClassNameProperty.set(
+                    obs.getValue().vehicleManager().getRegion().getDistanceCalculator().getClass().getSimpleName());
         });
 
         final VBox othersVBox = new VBox();
         othersVBox.setAlignment(Pos.CENTER);
         othersVBox.setSpacing(5);
+        othersVBox.minHeight(300);
 
         Label simulationLengthLabel = new Label();
         simulationLengthLabel.textProperty().bind(
                 new SimpleStringProperty("Simulation length: ").concat(simulationLengthProperty).concat(" ticks"));
+
+        Label distanceCalculatorLabel = new Label();
+        distanceCalculatorLabel.textProperty()
+                .bind(new SimpleStringProperty("Distance calculator: ").concat(distanceCalculatorClassNameProperty));
 
         Label orderGeneratorLabel = new Label();
         orderGeneratorLabel.textProperty().bind(new SimpleStringProperty("Order generator: ")
@@ -335,7 +343,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
                 .bind(new SimpleStringProperty("Order generator parameters:\n")
                         .concat(orderGeneratorParametersProperty));
 
-        othersVBox.getChildren().addAll(simulationLengthLabel, orderGeneratorLabel, orderGeneratorParameterLabel);
+        othersVBox.getChildren().addAll(simulationLengthLabel, distanceCalculatorLabel, orderGeneratorLabel,
+                orderGeneratorParameterLabel);
         return othersVBox;
     }
 
