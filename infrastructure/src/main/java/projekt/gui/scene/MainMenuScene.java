@@ -321,6 +321,7 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
         final VBox othersVBox = new VBox();
         othersVBox.setAlignment(Pos.CENTER);
+        othersVBox.setSpacing(5);
 
         Label simulationLengthLabel = new Label();
         simulationLengthLabel.textProperty().bind(
@@ -331,7 +332,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
                 .concat(orderGeneratorClassNameProperty));
         Label orderGeneratorParameterLabel = new Label();
         orderGeneratorParameterLabel.textProperty()
-                .bind(new SimpleStringProperty("Parameters: ").concat(orderGeneratorParametersProperty));
+                .bind(new SimpleStringProperty("Order generator parameters:\n")
+                        .concat(orderGeneratorParametersProperty));
 
         othersVBox.getChildren().addAll(simulationLengthLabel, orderGeneratorLabel, orderGeneratorParameterLabel);
         return othersVBox;
