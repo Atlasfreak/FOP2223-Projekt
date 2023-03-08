@@ -266,20 +266,25 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
         pane.getTabs().addAll(ratersTab, nodesTab, edgesTab, vehiclesTab, otherTab);
 
-        final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
-        final List<Vehicle> vehiclesTableData = new ArrayList<>();
-
         selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
-            System.out.println("aaaaaaaaah Whyyyyyy");
-            raterTableData.clear();
-            vehiclesTableData.clear();
+            final List<Map<RatingCriteria, Rater.Factory>> raterTableData = new ArrayList<>();
+            final List<Vehicle> vehiclesTableData = new ArrayList<>();
+            final List<Node> nodesTableData = new ArrayList<>();
+            final List<Edge> edgesTableData = new ArrayList<>();
+
+            nodesTableData.addAll(obs.getValue().vehicleManager().getRegion().getNodes());
+            edgesTableData.addAll(obs.getValue().vehicleManager().getRegion().getEdges());
             vehiclesTableData.addAll(obs.getValue().vehicleManager().getAllVehicles());
+
             for (RatingCriteria criteria : RatingCriteria.values()) {
                 Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
                 data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
                 raterTableData.add(data);
             }
+
             ratersTableView.setItems(FXCollections.observableList(raterTableData));
+            nodesTableView.setItems(FXCollections.observableList(nodesTableData));
+            edgesTableView.setItems(FXCollections.observableList(edgesTableData));
             vehiclesTableView.setItems(FXCollections.observableList(vehiclesTableData));
         });
 
@@ -289,9 +294,20 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
     private TableView<Edge> createEdgesTableView() {
         final TableView<Edge> tableView = new TableView<>();
         final TableColumn<Edge, String> nameTableColumn = new TableColumn<>("Name");
-        final TableColumn<Edge, String> locationATableColumn = new TableColumn<>("LocationB");
-        final TableColumn<Edge, String> locationBTableColumn = new TableColumn<>("LocationA");
+        final TableColumn<Edge, String> locationATableColumn = new TableColumn<>("LocationA");
+        final TableColumn<Edge, String> locationBTableColumn = new TableColumn<>("LocationB");
         final TableColumn<Edge, String> lengthTableColumn = new TableColumn<>("Length");
+
+        nameTableColumn
+                .setCellValueFactory((cellData) -> new SimpleStringProperty(cellData.getValue().getName().trim()));
+        locationATableColumn.setCellValueFactory(
+                (cellData) -> new SimpleStringProperty(cellData.getValue().getNodeA().getLocation().toString()));
+        locationBTableColumn.setCellValueFactory(
+                (cellData) -> new SimpleStringProperty(cellData.getValue().getNodeB().getLocation().toString()));
+        lengthTableColumn.setCellValueFactory(
+                (cellData) -> new SimpleStringProperty(Long.toString(cellData.getValue().getDuration())));
+
+        tableView.getColumns().addAll(nameTableColumn, locationATableColumn, locationBTableColumn, lengthTableColumn);
 
         return tableView;
     }
@@ -300,6 +316,14 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final TableView<Node> tableView = new TableView<>();
         final TableColumn<Node, String> nameTableColumn = new TableColumn<>("Name");
         final TableColumn<Node, String> locationTableColumn = new TableColumn<>("Location");
+
+        nameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(cellData.getValue().getName()
+                .trim()));
+        locationTableColumn.setCellValueFactory(
+                (cellData) -> new SimpleStringProperty(cellData.getValue().getLocation().toString()));
+
+        tableView.getColumns().addAll(nameTableColumn, locationTableColumn);
+
         return tableView;
     }
 
@@ -316,8 +340,7 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         capacityTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Double.toString(
                 cellData.getValue().getCapacity())));
 
-        tableView.getColumns().addAll(idTableColumn, locationTableColumn,
-                capacityTableColumn);
+        tableView.getColumns().addAll(idTableColumn, locationTableColumn, capacityTableColumn);
         return tableView;
     }
 
@@ -332,10 +355,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
         criteriaNameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(
                 cellData.getValue().keySet().toArray()[0].toString()));
-        raterNameTableColumn.setCellValueFactory((cellData) -> {
-            return new SimpleStringProperty(cellData.getValue().values().stream().findFirst().get().getClass()
-                    .getDeclaringClass().getSimpleName());
-        });
+        raterNameTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(cellData.getValue().values()
+                .stream().findFirst().get().getClass().getDeclaringClass().getSimpleName()));
         raterParametersTableColumn.setCellValueFactory((cellData) -> {
             Rater.Factory raterFactory = cellData.getValue().values().stream().findFirst().get();
             if (raterFactory == null) {
