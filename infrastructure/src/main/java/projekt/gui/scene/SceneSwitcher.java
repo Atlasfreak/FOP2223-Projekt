@@ -94,7 +94,7 @@ public final class SceneSwitcher {
 
         RATING(() -> SceneAndController.fromScene(new RaterScene())),
 
-        CREATEPROBLEM(() -> SceneAndController.fromScene(new CreateProblemScene()));
+        CREATE_PROBLEM(() -> SceneAndController.fromScene(new CreateProblemScene()));
 
         // --Variables-- //
         /**
