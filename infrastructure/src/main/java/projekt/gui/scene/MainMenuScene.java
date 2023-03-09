@@ -22,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -65,7 +66,10 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
     @Override
     public void initComponents() {
-        root.setCenter(createOptionsVBox());
+        ScrollPane mainPane = new ScrollPane();
+        mainPane.setContent(createOptionsVBox());
+        mainPane.setFitToWidth(true);
+        root.setCenter(mainPane);
     }
 
     /**
@@ -78,7 +82,6 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
     private VBox createOptionsVBox() {
         VBox optionsVbox = new VBox();
-        optionsVbox.setPrefSize(200, 100);
         optionsVbox.setAlignment(Pos.CENTER);
         optionsVbox.setSpacing(10);
         optionsVbox.setPadding(preferredPadding);
@@ -527,8 +530,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
     private ListView<ProblemArchetype> createProblemsListView(List<ProblemArchetype> data) {
         ListView<ProblemArchetype> listView = new ListView<>(FXCollections.observableList(data));
         listView.setMaxHeight(300);
+        listView.setPrefHeight(100);
         listView.setMaxWidth(150);
-        listView.minHeight(100);
         return listView;
     }
 
