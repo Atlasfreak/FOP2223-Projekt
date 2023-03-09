@@ -235,8 +235,18 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
 
         TabPane problemDetailsPane = createProblemDetailsPane();
 
-        VBox wrapperVBox = new VBox(problemsLabel, problemsListView, problemDetailsLabel, problemDetailsPane);
+        Button createProblemButton = new Button("Create Problem");
+        createProblemButton.setOnAction((event) -> {
+            CreateProblemScene scene = (CreateProblemScene) SceneSwitcher
+                    .loadScene(SceneSwitcher.SceneType.CREATE_PROBLEM, getController().getStage());
+            scene.init(problems);
+        });
+
+        VBox wrapperVBox = new VBox(problemsLabel, problemsListView, problemDetailsLabel, problemDetailsPane,
+                createProblemButton);
         wrapperVBox.setAlignment(Pos.CENTER);
+        wrapperVBox.setSpacing(10);
+
         problemsListView.getSelectionModel().select(0);
         return wrapperVBox;
     }
