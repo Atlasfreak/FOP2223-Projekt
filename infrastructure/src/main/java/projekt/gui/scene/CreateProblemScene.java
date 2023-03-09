@@ -2,6 +2,8 @@ package projekt.gui.scene;
 
 import java.util.ArrayList;
 
+import javafx.geometry.Pos;
+import javafx.scene.layout.VBox;
 import projekt.gui.controller.CreateProblemSceneController;
 
 public class CreateProblemScene extends MenuScene<CreateProblemSceneController> {
@@ -12,8 +14,16 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
 
     @Override
     public void initComponents() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'initComponents'");
+        VBox mainVBox = createMainVBox();
+        root.setCenter(mainVBox);
+    }
+
+    private VBox createMainVBox() {
+        VBox container = new VBox();
+        container.setAlignment(Pos.CENTER);
+
+        container.getChildren().addAll();
+        return container;
     }
 
     @Override
