@@ -222,28 +222,82 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
     }
 
     private VBox createProblemsVBox() {
+        List<ProblemArchetype> availableProblems = IOHelper.readProblems();
+        for (ProblemArchetype problem : List.copyOf(availableProblems)) {
+            for (ProblemArchetype alreadyAddedProblem : problems) {
+                if (problem.name().equals(alreadyAddedProblem.name())) {
+                    availableProblems.remove(problem);
+                    break;
+                }
+            }
+        }
+
         Label problemsLabel = new Label("Problems:");
 
-        ListView<ProblemArchetype> problemsListView = createProblemsListView();
+        ListView<ProblemArchetype> problemsListView = createProblemsListView(problems);
         problemsListView.getSelectionModel().selectedIndexProperty().addListener(
-                (obs, oldValue, newValue) -> selectedProblemProperty
-                        .set(problemsListView.getItems().get((Integer) newValue)));
+                (obs, oldValue, newValue) -> {
+                    if (newValue == null || newValue.intValue() == -1) {
+                        selectedProblemProperty.set(null);
+                        return;
+                    }
+                    selectedProblemProperty.set(problemsListView.getItems().get((Integer) newValue));
+                });
+
+        Label availableProblemsLabel = new Label("Available Problems:");
+
+        ObjectProperty<ProblemArchetype> selectedAvailableProperty = new SimpleObjectProperty<>();
+        ListView<ProblemArchetype> availableProblemsListView = createProblemsListView(availableProblems);
+        availableProblemsListView.getSelectionModel().selectedIndexProperty()
+                .addListener((obs, oldValue, newValue) -> {
+                    if (newValue == null || newValue.intValue() == -1) {
+                        selectedAvailableProperty.set(null);
+                        return;
+                    }
+                    selectedAvailableProperty.set(availableProblemsListView.getItems().get((Integer) newValue));
+                });
 
         Label problemDetailsLabel = new Label();
         problemDetailsLabel.textProperty()
                 .bind(selectedProblemProperty.asString().concat(" details:"));
 
-        TabPane problemDetailsPane = createProblemDetailsPane();
+        HBox buttonsWrapperBox = new HBox();
+        buttonsWrapperBox.setAlignment(Pos.CENTER);
+        buttonsWrapperBox.setSpacing(10);
 
-        Button createProblemButton = new Button("Create Problem");
+        Button deleteProblemButton = new Button("Delete selected Problem");
+        deleteProblemButton.setOnAction((event) -> {
+            availableProblems.add(problemsListView.getSelectionModel().getSelectedItem());
+            problems.remove(problemsListView.getSelectionModel().getSelectedItem());
+            availableProblemsListView.setItems(FXCollections.observableList(availableProblems));
+            problemsListView.getSelectionModel().clearSelection();
+            problemsListView.refresh();
+            availableProblemsListView.refresh();
+        });
+
+        Button addProblemButton = new Button("Add selected available Problem");
+        addProblemButton.setOnAction((event) -> {
+            availableProblems.remove(availableProblemsListView.getSelectionModel().getSelectedItem());
+            problems.add(availableProblemsListView.getSelectionModel().getSelectedItem());
+            availableProblemsListView.setItems(FXCollections.observableList(availableProblems));
+            availableProblemsListView.getSelectionModel().clearSelection();
+            problemsListView.refresh();
+            availableProblemsListView.refresh();
+        });
+
+        Button createProblemButton = new Button("Create new Problem");
         createProblemButton.setOnAction((event) -> {
             CreateProblemScene scene = (CreateProblemScene) SceneSwitcher
                     .loadScene(SceneSwitcher.SceneType.CREATE_PROBLEM, getController().getStage());
             scene.init(problems);
         });
 
-        VBox wrapperVBox = new VBox(problemsLabel, problemsListView, problemDetailsLabel, problemDetailsPane,
-                createProblemButton);
+        buttonsWrapperBox.getChildren().addAll(deleteProblemButton, addProblemButton, createProblemButton);
+
+        TabPane problemDetailsPane = createProblemDetailsPane();
+
+        VBox wrapperVBox = new VBox(problemsLabel, problemsListView, buttonsWrapperBox, availableProblemsLabel,
+                availableProblemsListView, problemDetailsLabel, problemDetailsPane);
         wrapperVBox.setAlignment(Pos.CENTER);
         wrapperVBox.setSpacing(10);
 
@@ -470,8 +524,8 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         return new Tab("Raters");
     }
 
-    private ListView<ProblemArchetype> createProblemsListView() {
-        ListView<ProblemArchetype> listView = new ListView<>(FXCollections.observableList(problems));
+    private ListView<ProblemArchetype> createProblemsListView(List<ProblemArchetype> data) {
+        ListView<ProblemArchetype> listView = new ListView<>(FXCollections.observableList(data));
         listView.setMaxHeight(300);
         listView.setMaxWidth(150);
         listView.minHeight(100);
