@@ -289,14 +289,16 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
             final List<Node> nodesTableData = new ArrayList<>();
             final List<Edge> edgesTableData = new ArrayList<>();
 
-            nodesTableData.addAll(obs.getValue().vehicleManager().getRegion().getNodes());
-            edgesTableData.addAll(obs.getValue().vehicleManager().getRegion().getEdges());
-            vehiclesTableData.addAll(obs.getValue().vehicleManager().getAllVehicles());
+            if (obs.getValue() != null) {
+                nodesTableData.addAll(obs.getValue().vehicleManager().getRegion().getNodes());
+                edgesTableData.addAll(obs.getValue().vehicleManager().getRegion().getEdges());
+                vehiclesTableData.addAll(obs.getValue().vehicleManager().getAllVehicles());
 
-            for (RatingCriteria criteria : RatingCriteria.values()) {
-                Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
-                data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
-                raterTableData.add(data);
+                for (RatingCriteria criteria : RatingCriteria.values()) {
+                    Map<RatingCriteria, Rater.Factory> data = new HashMap<>();
+                    data.put(criteria, obs.getValue().raterFactoryMap().get(criteria));
+                    raterTableData.add(data);
+                }
             }
 
             ratersTableView.setItems(FXCollections.observableList(raterTableData));
@@ -315,6 +317,14 @@ public class MainMenuScene extends MenuScene<MainMenuSceneController> {
         final StringProperty distanceCalculatorClassNameProperty = new SimpleStringProperty();
 
         selectedProblemProperty.addListener((obs, oldValue, newValue) -> {
+            if (obs.getValue() == null) {
+                simulationLengthProperty.set(-1);
+                orderGeneratorClassNameProperty.set("invalid");
+                orderGeneratorParametersProperty.set("invalid");
+                distanceCalculatorClassNameProperty.set("invalid");
+                return;
+            }
+
             simulationLengthProperty.set(obs.getValue().simulationLength());
             orderGeneratorClassNameProperty
                     .set(obs.getValue().orderGeneratorFactory().getClass().getDeclaringClass().getSimpleName());
