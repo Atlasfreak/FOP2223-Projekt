@@ -3,9 +3,11 @@ package projekt.gui.scene;
 import java.util.ArrayList;
 import java.util.function.UnaryOperator;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextFormatter.Change;
@@ -41,17 +43,18 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
 
     @Override
     public void initComponents() {
-        final VBox mainVBox = createMainVBox();
-        root.setCenter(mainVBox);
+        root.setCenter(createMainContainer());
     }
 
-    private VBox createMainVBox() {
-        final VBox container = new VBox();
-        container.setAlignment(Pos.CENTER);
+    private ScrollPane createMainContainer() {
+        final ScrollPane container = new ScrollPane();
+        final VBox vBox = new VBox();
+        vBox.setAlignment(Pos.CENTER);
 
-        final GridPane formGridPane = createForm();
-
-        container.getChildren().addAll(formGridPane);
+        vBox.getChildren().addAll(createForm());
+        vBox.setPadding(new Insets(20, 20, 20, 20));
+        container.setContent(vBox);
+        container.setFitToWidth(true);
         return container;
     }
 
