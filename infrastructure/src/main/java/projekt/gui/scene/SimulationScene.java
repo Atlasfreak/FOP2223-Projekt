@@ -2,9 +2,13 @@ package projekt.gui.scene;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TitledPane;
@@ -78,11 +82,11 @@ public class SimulationScene extends Scene implements SimulationListener, Contro
         vehicelsTableView = new TableView<>();
         final TableColumn<Vehicle, String> idTableColumn = new TableColumn<>("Id");
         final TableColumn<Vehicle, String> locationTableColumn = new TableColumn<>("Location");
-        // TODO Nested mit ausklappbaren Bestellungen
-        final TableColumn<Vehicle, String> ordersTableColumn = new TableColumn<>("Orders");
+        final TableColumn<Vehicle, List<ConfirmedOrder>> ordersTableColumn = new TableColumn<>("Orders");
 
         idTableColumn.setCellValueFactory((cellData) -> new SimpleStringProperty(Integer.toString(
                 cellData.getValue().getId())));
+
         locationTableColumn.setCellValueFactory((cellData) -> {
             VehicleManager.Occupied<?> occupied = cellData.getValue().getOccupied();
             if (occupied.getComponent() instanceof Region.Node) {
@@ -96,17 +100,31 @@ public class SimulationScene extends Scene implements SimulationListener, Contro
             }
             return new SimpleStringProperty("invalid");
         });
+
+        ordersTableColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(List<ConfirmedOrder> item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.size() == 0) {
+                    setText(null);
+                    return;
+                }
+
+                final Accordion accordion = new Accordion();
+                for (ConfirmedOrder confirmedOrder : item) {
+                    final ListView<String> foodListView = new ListView<String>(
+                            FXCollections.observableList(confirmedOrder.getFoodList()));
+                    foodListView.setPrefHeight(75);
+                    final TitledPane pane = new TitledPane(String.format("Order %s", confirmedOrder.getOrderID()),
+                            foodListView);
+                    accordion.getPanes().add(pane);
+                }
+                setGraphic(accordion);
+            }
+        });
         ordersTableColumn.setCellValueFactory((cellData) -> {
             Vehicle vehicle = cellData.getValue();
-            String ordersText = "";
-            List<ConfirmedOrder> orders = List.copyOf(vehicle.getOrders());
-            for (ConfirmedOrder order : orders) {
-                ordersText += order.getFoodList();
-                if (order != orders.get(orders.size() - 1)) {
-                    ordersText += "\n";
-                }
-            }
-            return new SimpleStringProperty(ordersText);
+            return new SimpleObjectProperty<>(List.copyOf(vehicle.getOrders()));
         });
         ordersTableColumn.prefWidthProperty().bind(vehicelsTableView.widthProperty()
                 .subtract(idTableColumn.widthProperty()).subtract(locationTableColumn.widthProperty()));
