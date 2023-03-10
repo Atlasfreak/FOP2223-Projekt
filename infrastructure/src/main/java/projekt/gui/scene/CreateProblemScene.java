@@ -24,6 +24,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TextFormatter.Change;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -91,6 +92,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
     private ProblemArchetype problem;
     private long simulationLength;
     private String name;
+    private final ScrollPane mainContainer = new ScrollPane();
 
     private final Map<Control, Boolean> validFields = new HashMap<>();
     private final ListProperty<Region.Node> nodes = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -120,15 +122,14 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
     }
 
     private ScrollPane createMainContainer() {
-        final ScrollPane container = new ScrollPane();
         final VBox vBox = new VBox();
         vBox.setAlignment(Pos.CENTER);
 
         vBox.getChildren().addAll(createForm());
         vBox.setPadding(new Insets(20, 20, 20, 20));
-        container.setContent(vBox);
-        container.setFitToWidth(true);
-        return container;
+        mainContainer.setContent(vBox);
+        mainContainer.setFitToWidth(true);
+        return mainContainer;
     }
 
     private GridPane createForm() {
@@ -507,6 +508,12 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         final MapPane map = new MapPane();
         map.setPrefHeight(300);
         map.setPrefWidth(700);
+        mainContainer.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (map.isHover()) {
+                map.getOnScroll().handle(event);
+                event.consume();
+            }
+        });
 
         final Accordion accordion = new Accordion();
         final TitledPane nodesPane = createNodesPane(regionBuilder, map);
