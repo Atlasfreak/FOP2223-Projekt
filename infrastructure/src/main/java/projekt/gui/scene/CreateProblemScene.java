@@ -1,12 +1,14 @@
 package projekt.gui.scene;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
@@ -14,19 +16,40 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextFormatter.Change;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 import javafx.util.converter.LongStringConverter;
+import projekt.delivery.archetype.ProblemArchetype;
+import projekt.delivery.archetype.ProblemArchetypeImpl;
 import projekt.delivery.generator.EmptyOrderGenerator;
 import projekt.delivery.generator.FridayOrderGenerator;
 import projekt.delivery.generator.OrderGenerator;
+import projekt.delivery.rating.AmountDeliveredRater;
+import projekt.delivery.rating.InTimeRater;
+import projekt.delivery.rating.RatingCriteria;
+import projekt.delivery.rating.TravelDistanceRater;
+import projekt.delivery.routing.VehicleManager;
 import projekt.gui.controller.CreateProblemSceneController;
 
 public class CreateProblemScene extends MenuScene<CreateProblemSceneController> {
-    private OrderGenerator.FactoryBuilder orderGeneratorFactoryBuilder;
+    private OrderGenerator.FactoryBuilder orderGeneratorBuilder;
+    private InTimeRater.FactoryBuilder inTimeRaterBuilder;
+    private AmountDeliveredRater.FactoryBuilder amountDeliveredRaterBuilder;
+    private TravelDistanceRater.FactoryBuilder travelDistanceRaterBuilder;
+    private VehicleManager.Builder vehicleManagerBuilder;
+
+    private ProblemArchetype problem;
+    private long simulationLength;
+    private String name;
 
     final UnaryOperator<Change> integerFilter = change -> {
         final String newText = change.getControlNewText();
@@ -78,6 +101,15 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
 
         final TextField nameField = new TextField();
         formGridPane.add(nameField, 1, 0);
+        nameField.textProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue == "" || problems.stream().map((problem) -> problem.name())
+                    .anyMatch((problem) -> problem == newValue)) {
+                nameField.setBorder(new Border(
+                        new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(2), new BorderWidths(2))));
+                return;
+            }
+            name = newValue;
+        });
 
         final Label simulationLengthLabel = new Label("Simulation Length:");
         formGridPane.add(simulationLengthLabel, 0, 1);
@@ -86,9 +118,15 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         formGridPane.add(simulationLengthField, 1, 1);
 
         simulationLengthField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, integerFilter));
+        simulationLengthField.textProperty().addListener((obs, oldValue, newValue) -> {
+            simulationLength = Long.parseLong(newValue);
+        });
+
         int offset = 2;
         offset += createRaterSelection(formGridPane, offset);
         offset += createOrderGeneratorSelection(formGridPane, offset);
+
+        createSubmitButton(formGridPane, offset);
 
         return formGridPane;
     }
@@ -123,8 +161,8 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         });
 
         choiceBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {
-            orderGeneratorFactoryBuilder = choiceBox.getItems().get((Integer) obs.getValue());
-            fridaySelectedProperty.set(orderGeneratorFactoryBuilder instanceof FridayOrderGenerator.FactoryBuilder);
+            orderGeneratorBuilder = choiceBox.getItems().get((Integer) obs.getValue());
+            fridaySelectedProperty.set(orderGeneratorBuilder instanceof FridayOrderGenerator.FactoryBuilder);
         });
 
         formGridPane.add(choiceBox, 0, rowOffset + 1);
@@ -135,6 +173,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         TextField orderCountField = new TextField();
         orderCountField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, integerFilter));
         orderCountField.disableProperty().bind(fridaySelectedProperty.not());
+        orderCountField.textProperty().addListener((obs, oldValue, newValue) -> {
+            FridayOrderGenerator.FactoryBuilder castedBuilder = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+            castedBuilder.setOrderCount(Integer.parseInt(newValue));
+        });
 
         formGridPane.add(orderCountField, 1, rowOffset + 2);
 
@@ -144,6 +186,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         TextField deliveryIntervalField = new TextField();
         deliveryIntervalField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, integerFilter));
         deliveryIntervalField.disableProperty().bind(fridaySelectedProperty.not());
+        deliveryIntervalField.textProperty().addListener((obs, oldValue, newValue) -> {
+            FridayOrderGenerator.FactoryBuilder castedBuilder = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+            castedBuilder.setDeliveryInterval(Integer.parseInt(newValue));
+        });
 
         formGridPane.add(deliveryIntervalField, 1, rowOffset + 3);
 
@@ -153,6 +199,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         TextField maxWeightField = new TextField();
         maxWeightField.setTextFormatter(new TextFormatter<>(new DoubleStringConverter(), 0.0, doubleFilter));
         maxWeightField.disableProperty().bind(fridaySelectedProperty.not());
+        maxWeightField.textProperty().addListener((obs, oldValue, newValue) -> {
+            FridayOrderGenerator.FactoryBuilder castedBuilder = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+            castedBuilder.setMaxWeight(Double.parseDouble(newValue));
+        });
 
         formGridPane.add(maxWeightField, 1, rowOffset + 4);
 
@@ -162,6 +212,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         TextField standardDeviationField = new TextField();
         standardDeviationField.setTextFormatter(new TextFormatter<>(new DoubleStringConverter(), 0.0, doubleFilter));
         standardDeviationField.disableProperty().bind(fridaySelectedProperty.not());
+        standardDeviationField.textProperty().addListener((obs, oldValue, newValue) -> {
+            FridayOrderGenerator.FactoryBuilder castedBuilder = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+            castedBuilder.setStandardDeviation(Double.parseDouble(newValue));
+        });
 
         formGridPane.add(standardDeviationField, 1, rowOffset + 5);
 
@@ -171,6 +225,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         TextField lastTickField = new TextField();
         lastTickField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, integerFilter));
         lastTickField.disableProperty().bind(fridaySelectedProperty.not());
+        lastTickField.textProperty().addListener((obs, oldValue, newValue) -> {
+            FridayOrderGenerator.FactoryBuilder castedBuilder = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+            castedBuilder.setLastTick(Integer.parseInt(newValue));
+        });
 
         formGridPane.add(lastTickField, 1, rowOffset + 6);
 
@@ -180,6 +238,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         TextField seedField = new TextField();
         seedField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter(), 0, integerFilter));
         seedField.disableProperty().bind(fridaySelectedProperty.not());
+        seedField.textProperty().addListener((obs, oldValue, newValue) -> {
+            FridayOrderGenerator.FactoryBuilder castedBuilder = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+            castedBuilder.setSeed(Integer.parseInt(newValue));
+        });
 
         formGridPane.add(seedField, 1, rowOffset + 7);
 
@@ -194,6 +256,13 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
 
         final CheckBox inTimeRaterCheckBox = new CheckBox("In Time Rater");
         formGridPane.add(inTimeRaterCheckBox, 0, rowOffset + 1, 2, 1);
+        inTimeRaterCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue) {
+                inTimeRaterBuilder = InTimeRater.Factory.builder();
+                return;
+            }
+            inTimeRaterBuilder = null;
+        });
 
         final Label inTimeRaterIgnoredTicksOffLabel = new Label("Ignored Ticks Off:");
         formGridPane.add(inTimeRaterIgnoredTicksOffLabel, 0, rowOffset + 2);
@@ -203,6 +272,9 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         inTimeRaterIgnoredTicksOffField
                 .setTextFormatter(new TextFormatter<>(new LongStringConverter(), Long.valueOf(0), integerFilter));
         inTimeRaterIgnoredTicksOffField.disableProperty().bind(inTimeRaterCheckBox.selectedProperty().not());
+        inTimeRaterIgnoredTicksOffField.textProperty().addListener((obs, oldValue, newValue) -> {
+            inTimeRaterBuilder.setIgnoredTicksOff(Long.parseLong(newValue));
+        });
 
         final Label inTimeRatermaxTicksOffLabel = new Label("Ignored Ticks Off:");
         formGridPane.add(inTimeRatermaxTicksOffLabel, 0, rowOffset + 3);
@@ -212,21 +284,41 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         inTimeRatermaxTicksOffField
                 .setTextFormatter(new TextFormatter<>(new LongStringConverter(), Long.valueOf(0), integerFilter));
         inTimeRatermaxTicksOffField.disableProperty().bind(inTimeRaterCheckBox.selectedProperty().not());
+        inTimeRatermaxTicksOffField.textProperty().addListener((obs, oldValue, newValue) -> {
+            inTimeRaterBuilder.setMaxTicksOff(Long.parseLong(newValue));
+        });
 
-        final CheckBox amountDeliverdRaterCheckBox = new CheckBox("Amount Delivered Rater");
-        formGridPane.add(amountDeliverdRaterCheckBox, 0, rowOffset + 4, 2, 1);
+        final CheckBox amountDeliveredRaterCheckBox = new CheckBox("Amount Delivered Rater");
+        formGridPane.add(amountDeliveredRaterCheckBox, 0, rowOffset + 4, 2, 1);
+        amountDeliveredRaterCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue) {
+                amountDeliveredRaterBuilder = AmountDeliveredRater.Factory.builder();
+                return;
+            }
+            amountDeliveredRaterBuilder = null;
+        });
 
-        final Label amountDeliverdRaterFactorLabel = new Label("Factor:");
-        formGridPane.add(amountDeliverdRaterFactorLabel, 0, rowOffset + 5);
-        final TextField amountDeliverdRaterFactorField = new TextField();
-        formGridPane.add(amountDeliverdRaterFactorField, 1, rowOffset + 5);
+        final Label amountDeliveredRaterFactorLabel = new Label("Factor:");
+        formGridPane.add(amountDeliveredRaterFactorLabel, 0, rowOffset + 5);
+        final TextField amountDeliveredRaterFactorField = new TextField();
+        formGridPane.add(amountDeliveredRaterFactorField, 1, rowOffset + 5);
 
-        amountDeliverdRaterFactorField
+        amountDeliveredRaterFactorField
                 .setTextFormatter(new TextFormatter<>(new DoubleStringConverter(), 0.0, doubleFilter));
-        amountDeliverdRaterFactorField.disableProperty().bind(amountDeliverdRaterCheckBox.selectedProperty().not());
+        amountDeliveredRaterFactorField.disableProperty().bind(amountDeliveredRaterCheckBox.selectedProperty().not());
+        amountDeliveredRaterFactorField.textProperty().addListener((obs, oldValue, newValue) -> {
+            amountDeliveredRaterBuilder.setFactor(Double.parseDouble(newValue));
+        });
 
         final CheckBox travelDistanceRaterCheckBox = new CheckBox("Travel Distance Rater");
         formGridPane.add(travelDistanceRaterCheckBox, 0, rowOffset + 6, 2, 1);
+        travelDistanceRaterCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue) {
+                travelDistanceRaterBuilder = TravelDistanceRater.Factory.builder();
+                return;
+            }
+            travelDistanceRaterBuilder = null;
+        });
 
         final Label travelDistanceRaterFactorLabel = new Label("Factor:");
         formGridPane.add(travelDistanceRaterFactorLabel, 0, rowOffset + 7);
@@ -236,8 +328,35 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         travelDistanceRaterFactorField
                 .setTextFormatter(new TextFormatter<>(new DoubleStringConverter(), 0.0, doubleFilter));
         travelDistanceRaterFactorField.disableProperty().bind(travelDistanceRaterCheckBox.selectedProperty().not());
+        travelDistanceRaterFactorField.textProperty().addListener((obs, oldValue, newValue) -> {
+            travelDistanceRaterBuilder.setFactor(Double.parseDouble(newValue));
+        });
 
         return rows;
+    }
+
+    private void createSubmitButton(final GridPane formGridPane, int offset) {
+        final Label errorLabel = new Label("You haven't selected all necessary properties");
+        formGridPane.add(errorLabel, 0, offset, formGridPane.getColumnCount(), 1);
+        errorLabel.setVisible(false);
+
+        final Button submitButton = new Button("Create");
+        formGridPane.add(submitButton, 0, offset + 1, formGridPane.getColumnCount(), 1);
+
+        submitButton.setOnAction(event -> {
+            if (orderGeneratorBuilder == null
+                    || vehicleManagerBuilder == null || (travelDistanceRaterBuilder == null
+                            && amountDeliveredRaterBuilder == null && inTimeRaterBuilder == null)
+                    || name == null || name == "") {
+                errorLabel.setVisible(true);
+                return;
+            }
+            problem = new ProblemArchetypeImpl(orderGeneratorBuilder.build(), vehicleManagerBuilder.build(),
+                    Map.of(RatingCriteria.TRAVEL_DISTANCE, travelDistanceRaterBuilder.build(),
+                            RatingCriteria.AMOUNT_DELIVERED, amountDeliveredRaterBuilder.build(),
+                            RatingCriteria.IN_TIME, inTimeRaterBuilder.build()),
+                    simulationLength, name);
+        });
     }
 
     @Override
