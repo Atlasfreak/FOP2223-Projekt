@@ -688,8 +688,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         final ChoiceBox<Region.Restaurant.Preset> presetChoiceBox = new ChoiceBox<>();
         presetChoiceBox.getItems().addAll(Region.Restaurant.ISENJAR, Region.Restaurant.JAVA_HUT,
                 Region.Restaurant.LOS_FOPBOTS_HERMANOS, Region.Restaurant.MIDDLE_FOP,
-                Region.Restaurant.MOUNT_DOOM_PIZZA, Region.Restaurant.PALPAPIZZA, Region.Restaurant.PALPAPIZZA,
-                Region.Restaurant.PASTAFAR);
+                Region.Restaurant.MOUNT_DOOM_PIZZA, Region.Restaurant.PALPAPIZZA, Region.Restaurant.PASTAFAR);
         presetChoiceBox.setConverter(new StringConverter<Region.Restaurant.Preset>() {
             @Override
             public String toString(final Region.Restaurant.Preset preset) {
