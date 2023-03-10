@@ -785,6 +785,10 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
             errorLabel.setVisible(false);
             VehicleManager vehicleManager = vehicleManagerBuilder.build();
             travelDistanceRaterBuilder.setVehicleManager(vehicleManager);
+            if (orderGeneratorBuilder instanceof FridayOrderGenerator.FactoryBuilder) {
+                FridayOrderGenerator.FactoryBuilder casted = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
+                casted.setVehicleManager(vehicleManager);
+            }
             problem = new ProblemArchetypeImpl(orderGeneratorBuilder.build(), vehicleManager,
                     Map.of(RatingCriteria.TRAVEL_DISTANCE, travelDistanceRaterBuilder.build(),
                             RatingCriteria.AMOUNT_DELIVERED, amountDeliveredRaterBuilder.build(),
