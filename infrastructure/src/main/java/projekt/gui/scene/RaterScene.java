@@ -46,19 +46,12 @@ public class RaterScene extends MenuScene<RaterSceneController> {
         xAxis.setLabel("Rater");
         yAxis.setLabel("Score");
 
-        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
-        // series1.setName("InTimeRater");
-        series1.getData().add(createData("In time", result.get(RatingCriteria.IN_TIME)));
-        series1.getData().add(createData("Amount delivered", result.get(RatingCriteria.AMOUNT_DELIVERED)));
-        series1.getData().add(createData("Travel distance", result.get(RatingCriteria.TRAVEL_DISTANCE)));
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (RatingCriteria criteria : result.keySet()) {
+            series.getData().add(createData(criteria.name(), result.get(criteria)));
+        }
 
-        // XYChart.Series<String, Number> series2 = new XYChart.Series<>();
-        // series2.setName("AmountDeliveredRater");
-
-        // XYChart.Series<String, Number> series3 = new XYChart.Series<>();
-        // series3.setName("TravelDistanceRater");
-
-        barChart.getData().addAll(series1);
+        barChart.getData().add(series);
         barChart.setLegendVisible(false);
 
         wrapper.getChildren().addAll(barChart);
