@@ -384,7 +384,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
             }
         });
 
-        final Label inTimeRatermaxTicksOffLabel = new Label("Ignored Ticks Off:");
+        final Label inTimeRatermaxTicksOffLabel = new Label("Max Ticks Off:");
         formGridPane.add(inTimeRatermaxTicksOffLabel, 0, rowOffset + 3);
         final TextField inTimeRatermaxTicksOffField = new TextField();
         formGridPane.add(inTimeRatermaxTicksOffField, 1, rowOffset + 3);
@@ -784,16 +784,27 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
             }
             errorLabel.setVisible(false);
             VehicleManager vehicleManager = vehicleManagerBuilder.build();
-            travelDistanceRaterBuilder.setVehicleManager(vehicleManager);
+
+            Map<RatingCriteria, Rater.Factory> criteriaToRater = new HashMap<>();
+
+            if (travelDistanceRaterBuilder != null) {
+                travelDistanceRaterBuilder.setVehicleManager(vehicleManager);
+                criteriaToRater.put(RatingCriteria.TRAVEL_DISTANCE, travelDistanceRaterBuilder.build());
+            }
+            if (amountDeliveredRaterBuilder != null) {
+                criteriaToRater.put(RatingCriteria.AMOUNT_DELIVERED, amountDeliveredRaterBuilder.build());
+            }
+            if (inTimeRaterBuilder != null) {
+                criteriaToRater.put(RatingCriteria.IN_TIME, inTimeRaterBuilder.build());
+            }
+
             if (orderGeneratorBuilder instanceof FridayOrderGenerator.FactoryBuilder) {
                 FridayOrderGenerator.FactoryBuilder casted = (FridayOrderGenerator.FactoryBuilder) orderGeneratorBuilder;
                 casted.setVehicleManager(vehicleManager);
             }
+
             problem = new ProblemArchetypeImpl(orderGeneratorBuilder.build(), vehicleManager,
-                    Map.of(RatingCriteria.TRAVEL_DISTANCE, travelDistanceRaterBuilder.build(),
-                            RatingCriteria.AMOUNT_DELIVERED, amountDeliveredRaterBuilder.build(),
-                            RatingCriteria.IN_TIME, inTimeRaterBuilder.build()),
-                    simulationLength, name);
+                    criteriaToRater, simulationLength, name);
             IOHelper.writeProblem(problem);
             problems.add(problem);
             returnToMainMenu();
