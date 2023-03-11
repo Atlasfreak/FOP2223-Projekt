@@ -140,23 +140,33 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
 
         final TextField nameField = new TextField();
         formGridPane.add(nameField, 1, 0);
+
+        final Label nameErrorLabel = new Label();
+        formGridPane.add(nameErrorLabel, 0, formGridPane.getRowCount(), 2, 1);
+
         nameField.textProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue == "" || problems.stream().map((problem) -> problem.name())
                     .anyMatch((problem) -> problem.equals(newValue))) {
                 nameField.setBorder(errorBorder);
                 validFields.put(nameField, false);
+                if (newValue == "") {
+                    nameErrorLabel.setText("Name cannot be empty!");
+                } else {
+                    nameErrorLabel.setText("Name is already in use!");
+                }
                 return;
             }
+            nameErrorLabel.setText(null);
             nameField.setBorder(null);
             validFields.put(nameField, true);
             name = newValue;
         });
 
         final Label simulationLengthLabel = new Label("Simulation Length:");
-        formGridPane.add(simulationLengthLabel, 0, 1);
+        formGridPane.add(simulationLengthLabel, 0, formGridPane.getRowCount());
 
         final TextField simulationLengthField = new TextField();
-        formGridPane.add(simulationLengthField, 1, 1);
+        formGridPane.add(simulationLengthField, 1, formGridPane.getRowCount());
 
         simulationLengthField
                 .setTextFormatter(new TextFormatter<>(new LongStringConverter(), Long.valueOf(0), integerFilter));
@@ -171,7 +181,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
             }
         });
 
-        int offset = 2;
+        int offset = formGridPane.getRowCount();
         offset += createRaterSelection(formGridPane, offset);
         offset += createOrderGeneratorSelection(formGridPane, offset);
         offset += createVehiclesManagerSection(formGridPane, offset);
