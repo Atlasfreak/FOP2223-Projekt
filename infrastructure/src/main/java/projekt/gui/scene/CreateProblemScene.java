@@ -142,7 +142,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         formGridPane.add(nameField, 1, 0);
 
         final Label nameErrorLabel = new Label();
-        formGridPane.add(nameErrorLabel, 0, formGridPane.getRowCount(), 2, 1);
+        formGridPane.add(nameErrorLabel, 2, 0);
 
         nameField.textProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue.isBlank() || problems.stream().map((problem) -> problem.name())
@@ -162,11 +162,12 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
             name = newValue;
         });
 
+        int simulationLengthRow = formGridPane.getRowCount();
         final Label simulationLengthLabel = new Label("Simulation Length:");
-        formGridPane.add(simulationLengthLabel, 0, formGridPane.getRowCount());
+        formGridPane.add(simulationLengthLabel, 0, simulationLengthRow);
 
         final TextField simulationLengthField = new TextField();
-        formGridPane.add(simulationLengthField, 1, formGridPane.getRowCount());
+        formGridPane.add(simulationLengthField, 1, simulationLengthRow);
 
         simulationLengthField
                 .setTextFormatter(new TextFormatter<>(new LongStringConverter(), Long.valueOf(0), integerFilter));
