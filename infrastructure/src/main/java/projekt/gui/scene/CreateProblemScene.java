@@ -519,6 +519,8 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         final MapPane map = new MapPane();
         map.setPrefHeight(300);
         map.setPrefWidth(700);
+        map.setBorder(new Border(
+                new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(0), new BorderWidths(1))));
         mainContainer.addEventFilter(ScrollEvent.SCROLL, event -> {
             if (map.isHover()) {
                 map.getOnScroll().handle(event);
