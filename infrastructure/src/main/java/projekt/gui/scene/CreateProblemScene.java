@@ -145,11 +145,11 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         formGridPane.add(nameErrorLabel, 0, formGridPane.getRowCount(), 2, 1);
 
         nameField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (newValue == "" || problems.stream().map((problem) -> problem.name())
+            if (newValue.isBlank() || problems.stream().map((problem) -> problem.name())
                     .anyMatch((problem) -> problem.equals(newValue))) {
                 nameField.setBorder(errorBorder);
                 validFields.put(nameField, false);
-                if (newValue == "") {
+                if (newValue.isBlank()) {
                     nameErrorLabel.setText("Name cannot be empty!");
                 } else {
                     nameErrorLabel.setText("Name is already in use!");
