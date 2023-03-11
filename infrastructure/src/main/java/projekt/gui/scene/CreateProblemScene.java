@@ -588,9 +588,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         container.add(locationLabel, 0, 1);
         container.add(locationChoiceBox, 1, 1);
 
-        final Label errorLabel = new Label("Your Vehicle is not configured correctly");
-        errorLabel.setTextFill(Color.RED);
-        errorLabel.setVisible(false);
+        final Label errorLabel = createErrorLabel("Vehicle");
         final Button submitButton = new Button("Add Vehicle");
         submitButton.setOnAction((event) -> {
             try {
@@ -632,9 +630,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         container.add(locationBLabel, 0, 2);
         container.add(locationBChoiceBox, 1, 2);
 
-        final Label errorLabel = new Label("Your Edge is not configured correctly");
-        errorLabel.setTextFill(Color.RED);
-        errorLabel.setVisible(false);
+        final Label errorLabel = createErrorLabel("Edge");
         final Button submitButton = new Button("Add Edge");
         submitButton.setOnAction((event) -> {
             try {
@@ -714,9 +710,7 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
             presetChoiceBox.setDisable(true);
         });
 
-        final Label errorLabel = new Label("Your Node is not configured correctly");
-        errorLabel.setTextFill(Color.RED);
-        errorLabel.setVisible(false);
+        final Label errorLabel = createErrorLabel("Node");
         final Button submitButton = new Button("Add Node");
         submitButton.setOnAction((event) -> {
             try {
@@ -747,6 +741,14 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
         container.add(errorLabel, 0, 6, container.getColumnCount(), 1);
 
         return new TitledPane("Add Node", container);
+    }
+
+    private Label createErrorLabel(String placeholder) {
+        final Label errorLabel = new Label(String.format(
+                "Your %s is not configured correctly or already exists", placeholder));
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setVisible(false);
+        return errorLabel;
     }
 
     private void updateMap(final MapPane map, Region.Builder regionBuilder) {
