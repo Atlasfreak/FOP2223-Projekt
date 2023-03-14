@@ -24,9 +24,9 @@ jagr {
             // in Anführungszeichen (z.B. "ab12cdef" für Ihre TU-ID) ein! Geben Sie dabei die Daten eines beliebigen
             // Gruppenmitgliedes an.
 
-            //studentId.set("null")
-            //firstName.set("null")
-            //lastName.set("null")
+            studentId.set("pg24baxu")
+            firstName.set("Per")
+            lastName.set("Göttlicher")
         }
     }
     graders {
