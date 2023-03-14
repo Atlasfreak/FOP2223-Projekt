@@ -33,6 +33,11 @@ jobs:
       with:
         arguments: graderPublicRun -Dorg.gradle.jvmargs=-Xmx4g
       continue-on-error: true
+    - name: Build Submission
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: mainBuildSubmission -Dorg.gradle.jvmargs=-Xmx4g
+      continue-on-error: true
     - name: Upload Files
       uses: actions/upload-artifact@v3
       with:
