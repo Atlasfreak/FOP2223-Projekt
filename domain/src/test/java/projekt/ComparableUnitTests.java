@@ -16,7 +16,7 @@ public class ComparableUnitTests<T extends Comparable<? super T>> {
 
     @SuppressWarnings("unchecked")
     public void initialize(int testObjectCount) {
-        testObjects = (T[]) new Object[testObjectCount];
+        testObjects = (T[]) new Comparable<?>[testObjectCount];
         for (int i = 0; i < testObjects.length; i++) {
             testObjects[i] = testObjectFactory.apply(i);
         }
@@ -25,7 +25,7 @@ public class ComparableUnitTests<T extends Comparable<? super T>> {
     public void testBiggerThen() {
         for (int i = 0; i < testObjects.length; i++) {
             for (int j = 0; j < i; j++) {
-                assertEquals(testObjects[i].compareTo(testObjects[j]), 1);
+                assertEquals(1, testObjects[i].compareTo(testObjects[j]));
             }
         }
     }
@@ -33,14 +33,14 @@ public class ComparableUnitTests<T extends Comparable<? super T>> {
     @SuppressWarnings("EqualsWithItself")
     public void testAsBigAs() {
         for (int i = 0; i < testObjects.length; i++) {
-            assertEquals(testObjects[i].compareTo(testObjects[i]), 0);
+            assertEquals(0, testObjects[i].compareTo(testObjects[i]));
         }
     }
 
     public void testLessThen() {
         for (int i = 0; i < testObjects.length; i++) {
             for (int j = 0; j < i; j++) {
-                assertEquals(testObjects[i].compareTo(testObjects[j]), -1);
+                assertEquals(-1, testObjects[i].compareTo(testObjects[j]));
             }
         }
     }
