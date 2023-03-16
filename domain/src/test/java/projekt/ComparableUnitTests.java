@@ -39,7 +39,7 @@ public class ComparableUnitTests<T extends Comparable<? super T>> {
 
     public void testLessThen() {
         for (int i = 0; i < testObjects.length; i++) {
-            for (int j = 0; j < i; j++) {
+            for (int j = i + 1; j < testObjects.length; j++) {
                 assertEquals(-1, testObjects[i].compareTo(testObjects[j]));
             }
         }
