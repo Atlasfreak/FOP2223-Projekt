@@ -21,19 +21,48 @@ public class ObjectUnitTests<T> {
 
     @SuppressWarnings("unchecked")
     public void initialize(int testObjectCount) {
-        crash(); // TODO: H12.1 - remove if implemented
+        testObjects = (T[]) new Object[testObjectCount];
+        testObjectsReferenceEquality = (T[]) new Object[testObjectCount];
+        testObjectsContentEquality = (T[]) new Object[testObjectCount];
+
+        for (int i = 0; i < testObjectCount; i++) {
+            testObjects[i] = testObjectFactory.apply(i);
+            testObjectsReferenceEquality[i] = testObjectFactory.apply(i);
+            testObjectsContentEquality[i] = testObjects[i];
+        }
     }
 
     public void testEquals() {
-        crash(); // TODO: H12.1 - remove if implemented
+        for (int i = 0; i < testObjects.length; i++) {
+            assertEquals(testObjects[i], testObjectsReferenceEquality[i]);
+            assertEquals(testObjectsContentEquality[i], testObjectsReferenceEquality[i]);
+            assertEquals(testObjectsContentEquality[i], testObjects[i]);
+            for (int j = 0; j < testObjects.length; j++) {
+                if (i == j) {
+                    continue;
+                }
+                assertNotEquals(testObjects[i], testObjects[j]);
+            }
+        }
     }
 
     public void testHashCode() {
-        crash(); // TODO: H12.1 - remove if implemented
+        for (int i = 0; i < testObjects.length; i++) {
+            assertEquals(testObjects[i].hashCode(), testObjectsReferenceEquality[i].hashCode());
+            assertEquals(testObjectsContentEquality[i].hashCode(), testObjectsReferenceEquality[i].hashCode());
+            assertEquals(testObjectsContentEquality[i].hashCode(), testObjects[i].hashCode());
+            for (int j = 0; j < testObjects.length; j++) {
+                if (i == j) {
+                    continue;
+                }
+                assertNotEquals(testObjects[i].hashCode(), testObjects[j].hashCode());
+            }
+        }
     }
 
     public void testToString() {
-        crash(); // TODO: H12.1 - remove if implemented
+        for (int i = 0; i < testObjects.length; i++) {
+            assertEquals(testObjects[i].toString(), toString.apply(testObjects[i]));
+        }
     }
-
 }
