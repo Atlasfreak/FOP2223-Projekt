@@ -4,9 +4,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import projekt.ComparableUnitTests;
 import projekt.ObjectUnitTests;
+import projekt.base.Location;
 
-import static org.tudalgo.algoutils.student.Student.crash;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.Set;
+import java.util.function.Function;
 
 public class NodeImplUnitTests {
 
@@ -23,51 +25,90 @@ public class NodeImplUnitTests {
 
     @BeforeAll
     public static void initialize() {
-        crash(); // TODO: H12.4 - remove if implemented
+        RegionImpl region1 = new RegionImpl();
+
+        Function<Integer, NodeImpl> testObjectFactory = (i) -> new NodeImpl(new RegionImpl(), "Test",
+                new Location(i, i * i), null);
+        Function<NodeImpl, String> testStringFactory = (o) -> o.toString();
+        objectUnitTests = new ObjectUnitTests<>(testObjectFactory, testStringFactory);
+        objectUnitTests.initialize(10);
+        comparableUnitTests = new ComparableUnitTests<>(testObjectFactory);
+        comparableUnitTests.initialize(10);
+
+        Location locationA = new Location(0, 0);
+        Location locationB = new Location(0, 1);
+        Location locationC = new Location(1, 0);
+        Location locationD = new Location(2, 0);
+
+        edgeAA = new EdgeImpl(region1, "AA", locationA, locationA, 0);
+        edgeAB = new EdgeImpl(region1, "AB", locationA, locationB, 0);
+        edgeBC = new EdgeImpl(region1, "BC", locationB, locationC, 0);
+
+        nodeA = new NodeImpl(region1, "A", locationA, Set.of(locationA, locationB));
+        nodeB = new NodeImpl(region1, "B", locationB, Set.of(locationA, locationC));
+        nodeC = new NodeImpl(region1, "C", locationC, Set.of(locationB));
+        nodeD = new NodeImpl(region1, "D", locationD, Set.of());
+
+        region1.putNode(nodeA);
+        region1.putNode(nodeB);
+        region1.putNode(nodeC);
+        region1.putNode(nodeD);
+        region1.putEdge(edgeAA);
+        region1.putEdge(edgeAB);
+        region1.putEdge(edgeBC);
     }
 
     @Test
     public void testEquals() {
-        crash(); // TODO: H12.4 - remove if implemented
+        objectUnitTests.testEquals();
     }
 
     @Test
     public void testHashCode() {
-        crash(); // TODO: H12.4 - remove if implemented
+        objectUnitTests.testHashCode();
     }
 
     @Test
     public void testToString() {
-        crash(); // TODO: H12.4 - remove if implemented
+        objectUnitTests.testToString();
     }
 
     @Test
     public void testBiggerThen() {
-        crash(); // TODO: H12.4 - remove if implemented
+        comparableUnitTests.testBiggerThen();
     }
 
     @Test
     public void testAsBigAs() {
-        crash(); // TODO: H12.4 - remove if implemented
+        comparableUnitTests.testAsBigAs();
     }
 
     @Test
     public void testLessThen() {
-        crash(); // TODO: H12.4 - remove if implemented
+        comparableUnitTests.testLessThen();
     }
 
     @Test
     public void testGetEdge() {
-        crash(); // TODO: H12.4 - remove if implemented
+        assertEquals(nodeA.getEdge(nodeA), edgeAA);
+        assertEquals(nodeA.getEdge(nodeB), edgeAB);
+        assertNull(nodeA.getEdge(nodeC));
+        assertNull(nodeA.getEdge(nodeD));
     }
 
     @Test
     public void testAdjacentNodes() {
-        crash(); // TODO: H12.4 - remove if implemented
+        assertEquals(nodeA.getAdjacentEdges(), Set.of(edgeAA, edgeAB));
+        assertEquals(nodeB.getAdjacentEdges(), Set.of(edgeAB, edgeBC));
+        assertEquals(nodeC.getAdjacentEdges(), Set.of(edgeBC));
+        assertEquals(nodeD.getAdjacentEdges(), Set.of());
     }
 
     @Test
     public void testAdjacentEdges() {
-        crash(); // TODO: H12.4 - remove if implemented
+        assertEquals(nodeA.getAdjacentNodes(), Set.of(nodeA, nodeB));
+        assertEquals(nodeB.getAdjacentNodes(), Set.of(nodeA, nodeC));
+        assertEquals(nodeC.getAdjacentNodes(), Set.of(nodeB));
+        assertEquals(nodeD.getAdjacentNodes(), Set.of());
     }
 }
