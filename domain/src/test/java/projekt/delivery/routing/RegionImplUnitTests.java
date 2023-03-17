@@ -72,8 +72,7 @@ public class RegionImplUnitTests {
         assertNull(region1.getNode(new Location(42, 69)));
 
         // Test throws correct Exception, when node is in different region
-        assertThrows(IllegalArgumentException.class, () -> region1.putNode(nodeD),
-                String.format("Node %s has incorrect region", nodeD.toString()));
+        assertThrows(IllegalArgumentException.class, () -> region1.putNode(nodeD));
     }
 
     @Test
@@ -118,12 +117,10 @@ public class RegionImplUnitTests {
 
         assertNull(region1.getEdge(locationA, locationC));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> region1.putEdge(edgeABRegion2), String.format("Edge %s has incorrect region", edgeABRegion2));
-        assertThrows(IllegalArgumentException.class,
-                () -> region1.putEdge(edgeDBRegion2), String.format("NodeA %s is not part of the region", locationD));
-        assertThrows(IllegalArgumentException.class,
-                () -> region1.putEdge(edgeAERegion2), String.format(
-                        "NodeB %s is not part of the region", locationE));
+        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeABRegion2));
+
+        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeDBRegion2));
+
+        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeAERegion2));
     }
 }
