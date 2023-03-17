@@ -792,7 +792,8 @@ public class CreateProblemScene extends MenuScene<CreateProblemSceneController> 
                     || vehicleManagerBuilder == null || (travelDistanceRaterBuilder == null
                             && amountDeliveredRaterBuilder == null && inTimeRaterBuilder == null)
                     || name == null || name == "" || validFields.values().size() == 0
-                    || !validFields.values().stream().reduce(true, (left, right) -> left & right)) {
+                    || !validFields.keySet().stream().filter(input -> !input.isDisabled())
+                            .map(input -> validFields.get(input)).reduce(true, (left, right) -> left & right)) {
                 errorLabel.setVisible(true);
                 return;
             }
