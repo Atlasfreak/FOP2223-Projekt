@@ -2,9 +2,7 @@ package projekt;
 
 import java.util.function.Function;
 
-import static org.tudalgo.algoutils.student.Student.crash;
 import static org.junit.jupiter.api.Assertions.*;
-
 
 public class ComparableUnitTests<T extends Comparable<? super T>> {
 
@@ -18,19 +16,32 @@ public class ComparableUnitTests<T extends Comparable<? super T>> {
 
     @SuppressWarnings("unchecked")
     public void initialize(int testObjectCount) {
-        crash(); // TODO: H12.1 - remove if implemented
+        testObjects = (T[]) new Comparable<?>[testObjectCount];
+        for (int i = 0; i < testObjects.length; i++) {
+            testObjects[i] = testObjectFactory.apply(i);
+        }
     }
 
     public void testBiggerThen() {
-        crash(); // TODO: H12.1 - remove if implemented
+        for (int i = 0; i < testObjects.length; i++) {
+            for (int j = 0; j < i; j++) {
+                assertTrue(testObjects[i].compareTo(testObjects[j]) > 0);
+            }
+        }
     }
 
     @SuppressWarnings("EqualsWithItself")
     public void testAsBigAs() {
-        crash(); // TODO: H12.1 - remove if implemented
+        for (int i = 0; i < testObjects.length; i++) {
+            assertEquals(0, testObjects[i].compareTo(testObjects[i]));
+        }
     }
 
     public void testLessThen() {
-        crash(); // TODO: H12.1 - remove if implemented
+        for (int i = 0; i < testObjects.length; i++) {
+            for (int j = i + 1; j < testObjects.length; j++) {
+                assertTrue(testObjects[i].compareTo(testObjects[j]) < 0);
+            }
+        }
     }
 }
