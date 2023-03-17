@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 
 /**
- * A SceneSwitcher is responsible for switching between the different {@link Scene}s.
+ * A SceneSwitcher is responsible for switching between the different
+ * {@link Scene}s.
  */
 public final class SceneSwitcher {
 
@@ -91,11 +92,14 @@ public final class SceneSwitcher {
 
         SIMULATION(() -> SceneAndController.fromScene(new SimulationScene())),
 
-        RATING(() -> SceneAndController.fromScene(new RaterScene()));
+        RATING(() -> SceneAndController.fromScene(new RaterScene())),
+
+        CREATE_PROBLEM(() -> SceneAndController.fromScene(new CreateProblemScene()));
 
         // --Variables-- //
         /**
-         * A Callable that creates a {@link SceneAndController} for this {@link SceneType}.
+         * A Callable that creates a {@link SceneAndController} for this
+         * {@link SceneType}.
          * The Controller is used to initialize the {@link Scene}.
          */
         private final Callable<SceneAndController> sacGenerator;
@@ -105,7 +109,8 @@ public final class SceneSwitcher {
         /**
          * Creates a new SceneType.
          *
-         * @param sacGenerator A Callable that creates a {@link SceneAndController} for this {@link SceneType}.
+         * @param sacGenerator A Callable that creates a {@link SceneAndController} for
+         *                     this {@link SceneType}.
          */
         SceneType(final Callable<SceneAndController> sacGenerator) {
             this.sacGenerator = sacGenerator;
