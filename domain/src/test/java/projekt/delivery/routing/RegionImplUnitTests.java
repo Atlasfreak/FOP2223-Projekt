@@ -97,8 +97,8 @@ public class RegionImplUnitTests {
         EdgeImpl edgeAB = new EdgeImpl(region1, "AB", locationA, locationB, 0);
         EdgeImpl edgeBC = new EdgeImpl(region1, "BC", locationB, locationC, 0);
         EdgeImpl edgeABRegion2 = new EdgeImpl(region2, "AB", locationA, locationB, 0);
-        EdgeImpl edgeDBRegion2 = new EdgeImpl(region2, "DB", locationD, locationB, 0);
-        EdgeImpl edgeAERegion2 = new EdgeImpl(region2, "DB", locationA, locationE, 0);
+        EdgeImpl edgeDBRegion1 = new EdgeImpl(region1, "DB", locationD, locationB, 0);
+        EdgeImpl edgeAERegion1 = new EdgeImpl(region1, "AE", locationA, locationE, 0);
 
         region1.putNode(nodeA);
         region1.putNode(nodeB);
@@ -119,8 +119,8 @@ public class RegionImplUnitTests {
 
         assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeABRegion2));
 
-        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeDBRegion2));
+        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeDBRegion1));
 
-        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeAERegion2));
+        assertThrows(IllegalArgumentException.class, () -> region1.putEdge(edgeAERegion1));
     }
 }
